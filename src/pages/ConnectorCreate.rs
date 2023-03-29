@@ -35,7 +35,7 @@ pub enum Msg {
     InputErrorMsg(String),
     CreateValidate,
     ErrorBotType(String),
-    ShowError,
+    CheckInput,
     CheckSuccess,
 }
 
@@ -160,7 +160,7 @@ impl Component for ConnectorCreate {
                         ConsoleService::info(&format!("status is {:?}", status_number));
 
                         if meta.status.is_success(){
-                            Msg::Direct
+                            Msg::CheckInput
                         }else{
                             match data {
                                 Ok(dataok) => {
@@ -199,9 +199,13 @@ impl Component for ConnectorCreate {
 
                 true
             }
-            Msg::ShowError => {
-
-                ConsoleService::info(&("ShowError here"));
+            Msg::CheckInput => {
+                if self.msg_err.body.is_empty(){
+                    self.msg_err.header = "Success".to_string();
+                    self.msg_err.body = "You have created a new connector".to_string();
+                }else{
+                    self.link.send_message(Msg::Ignore);
+                }
                 true
             }
             Msg::CreateValidate => {
@@ -229,8 +233,14 @@ impl Component for ConnectorCreate {
                                         self.msg_err.header = "Error".to_string();
                                         self.msg_err.body = "Bot Token field cannot be empty".to_string();
                                     }else{
-                                        self.msg_err.header = "Success".to_string();
-                                        self.msg_err.body = "Your new connecter has been created".to_string();
+                                        if self.new_connector.name.ends_with(" "){
+                                            self.msg_err.header = "Error".to_string();
+                                            self.msg_err.body = "Name field cannot end with a space".to_string();
+                                        }else{
+                                            self.msg_err.body = "".to_string();
+                                            ConsoleService::info(&format!("msg err body {}", self.msg_err.body));
+                                            self.link.send_message(Msg::CreateConnector);
+                                        }
                                     }
                                 }
                             }
@@ -240,14 +250,12 @@ impl Component for ConnectorCreate {
                 true
             }
             Msg::CheckSuccess => {           
-                ConsoleService::info(&("YEYE"));                       
                 if self.msg_err.header == "Success"{
-                    ConsoleService::info(&("YES")); 
-                    self.link.send_message(Msg::CreateConnector);
+                    self.link.send_message(Msg::Direct)
                 }else{
-                    ConsoleService::info(&("NO")); 
-                    self.link.send_message(Msg::Ignore);
-                }
+                    self.link.send_message(Msg::Ignore)
+                }                 
+
                 true
             }
         }
@@ -261,212 +269,163 @@ impl Component for ConnectorCreate {
     }
 
     fn view(&self) -> Html {
-        type Anchor = RouterAnchor<AppRoute>;
-
         html! {
-          <div 
-            class="container-form"
-            style="
-                positon:absolute
+            <div class="base-form">
+                <div class="create-connector">
+                    <h5>{"Create Connector Form"}</h5>
 
-            "
-          >
+                    <div class="input-group" style=" margin: auto; width: 400px">
+                        <input type="text"  id="emailInput" class="form-control p-3 my-2 " placeholder="Connector Name"
+                        style="
+                            width: 400px;
+                            height:30px;
+                            margin:auto;
+                        "
+                            value={self.new_connector.name.clone()}
+                            oninput=self.link.callback(|data: InputData| Msg::InputName(data.value))
+                            
+                        />
+                    </div>
 
-                <div class="space"
-                     style="
-                     color:white;
-                     height: 150px;
-                     "
-                >
-                    <p> {"s"} </p>
-                </div>
+                    <div class="input-group" style=" margin: auto; width: 400px">
+                        <input type="text" id="emailInput" class="form-control p-3 my-2 " placeholder="Email"
+                        style="
+                            height:30px;
+                            margin:auto;
+                        "
+                            value={self.new_connector.email.clone()}
+                            oninput=self.link.callback(|data: InputData| Msg::InputEmail(data.value))
+                        />
+                    </div>
 
-               <input type="text"  id="emailInput" class="form-control p-3 my-2 " placeholder="Connector Name"
-                style="
-                    width: 400px;
-                    height:30px;
-                    margin:auto;
-                "
-                    value={self.new_connector.name.clone()}
-                    oninput=self.link.callback(|data: InputData| Msg::InputName(data.value))
-                    
-               />
+                    <div class="input-group" style=" margin: auto; width: 400px">
+                        <input type="password" id="emailInput" class="form-control p-3 my-2 " placeholder="Api Keys"
+                        style="
+                            width: 400px;
+                            height:30px;
+                            margin:auto;
+                            margin-top:150px;
+                        "
+                            value={self.new_connector.api_key.clone()}
+                            oninput=self.link.callback(|data: InputData| Msg::InputApi(data.value))
+                        />
+                    </div>  
 
-               <div class="space"
-                     style="
-                     color:white;
-                     height: 5px;
-                     "
-                >
-                    <p> {"s"} </p>
-                </div>
-
-               <input type="text" id="emailInput" class="form-control p-3 my-2 " placeholder="Email"
-                style="
-                    width: 400px;
-                    height:30px;
-                    margin:auto;
-                "
-                    value={self.new_connector.email.clone()}
-                    oninput=self.link.callback(|data: InputData| Msg::InputEmail(data.value))
-               />
-
-               <div class="space"
-                     style="
-                     color:white;
-                     height: 5px;
-                     "
-                >
-                    <p> {"s"} </p>
-                </div>
-
-               <input type="password" id="emailInput" class="form-control p-3 my-2 " placeholder="Api Keys"
-                style="
-                    width: 400px;
-                    height:30px;
-                    margin:auto;
-                "
-                    value={self.new_connector.api_key.clone()}
-                    oninput=self.link.callback(|data: InputData| Msg::InputApi(data.value))
-               />
-
-               <div class="space"
-                     style="
-                     color:white;
-                     height: 5px;
-                     "
-                >
-                    <p> {"s"} </p>
-                </div>
-
-                  //Platform Notif
-                  <div class="dropdown mt-2 mb-2"
-                  style="
-                      color:#212529;
-                      margin:auto;
-                  "
-              >
-                  <form 
-                      style="
-                          text-align:center;
-                      "
-                  >
-                      <select class="form-select"
-                          aria-label="Default select example"
-                              style="
-                                  margin:auto;
-                                  width: 400px;
-                                  height:36px;
-                              "
-                              required=true
-                              onchange=self.link.callback(|e| {
-                                if let ChangeData::Select(select) = e {
-                                
-                                    let value = select.value();
-                                    Msg::InputPlatNotif(value)
-                                } else {
-                                    Msg::InputPlatNotif("No value".to_string())
-                                }
-                              })
-                      >
-                          <option value="" disabled=true  >{"Platform Notification"}</option>
-                          <option value="Telegram">{"Telegram"}</option>
-                          <option value="Slack">{"Slack"}</option>
-                      </select>
-                  </form>
-              </div>
-            
-            
-               <div class="space"
-                     style="
-                     color:white;
-                     height: 5px;
-                     "
-                >
-                    <p> {"s"} </p>
-                </div>
-                              
-                { 
-                    if self.new_connector.bot_type.eq("Telegram"){
-                        html!{
-                            <div>
-                                <input type="text" id="emailInput" class="form-control p-3 my-2 " placeholder="Group Chat ID"
+                    //Platform Notif
+                    <div class="dropdown mt-2 mb-2"
+                    style="
+                        color:#212529;
+                        margin:auto;
+                        margin-top:150px;
+                    "
+                    >
+                        <form style="text-align:center;"
+                        >
+                            <select class="form-select"
+                                aria-label="Default select example"
                                     style="
-                                        width: 400px;
-                                        height:30px;
-                                        margin:auto;       
-                                    "
-                                    value={self.new_connector.chatid.clone()}
-                                    oninput=self.link.callback(|data: InputData| Msg::InputGroupChatID(data.value))
-                                />
-                                
-                                //space
-                                <div class="space" style="color:white; height: 5px;"> <p> {"s"} </p> </div>
-
-                                <input type="text" id="emailInput" class="form-control p-3 my-2 " placeholder="Bot Token"
-                                    style="
-                                        width: 400px;
-                                        height:30px; 
                                         margin:auto;
+                                        width: 400px;
+                                        height:36px;
+                                        margin-top:5px;
                                     "
-                                    value={self.new_connector.token.clone()}
-                                    oninput=self.link.callback(|data: InputData| Msg::InputBotTok(data.value))
-                                />
+                                    required=true
+                                    onchange=self.link.callback(|e| {
+                                        if let ChangeData::Select(select) = e {
+                                        
+                                            let value = select.value();
+                                            Msg::InputPlatNotif(value)
+                                        } else {
+                                            Msg::InputPlatNotif("No value".to_string())
+                                        }
+                                    })
+                            >
+                                <option value="" disabled=true  >{"Platform Notification"}</option>
+                                <option value="Telegram">{"Telegram"}</option>
+                                <option value="Slack">{"Slack"}</option>
+                            </select>
+                        </form>
+                    </div>
+                
+                
+
                                 
-                                //space
-                                <div class="space" style="color:white; height: 5px;"> <p> {"s"} </p> </div>
-                            </div>
-                        }
-                    }else if self.new_connector.bot_type.eq("Slack"){
-                        html!{
-                            <div>
-                                    <input type="text" id="emailInput" class="form-control p-3 my-2 " placeholder="Bot Token"
+                    { 
+                        if self.new_connector.bot_type.eq("Telegram"){
+                            html!{
+                                <div>
+
+                                    <div class="input-group" style=" margin: auto; width: 400px">
+                                        <input type="text" id="emailInput" class="form-control p-3 my-2 " placeholder="Group Chat ID"
                                         style="
-                                            width: 400px;
                                             height:30px;
                                             margin:auto;       
                                         "
-                                        value={self.new_connector.token.clone()}
-                                    oninput=self.link.callback(|data: InputData| Msg::InputBotTok(data.value))
-                                    />
-                                    
-                                    //space
-                                    <div class="space" style="color:white; height: 5px;"> <p> {"s"} </p> </div>
-                            </div>
-                        }
-                    }else{
-                        html!{
+                                        value={self.new_connector.chatid.clone()}
+                                        oninput=self.link.callback(|data: InputData| Msg::InputGroupChatID(data.value))
+                                        />
+                                    </div>
 
-                        }
-                    }
-                    
-                }
-                      
-                        
-                        
-                            <div>
-                                <button type="button" class="home"
+                                    <div class="input-group" style=" margin: auto; width: 400px">
+                                        <input type="text" id="emailInput" class="form-control p-3 my-2 " placeholder="Bot Token"
                                         style="
-                                        background:#A73034;
-                                        border-color:#A73034;
-                                        color:white;
-                                        border-radius:15px;
-                                        height: 40px;
-                                        margin-left:681.885px;
-                                        margin-top:15px;
-                                    " 
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#display_msg"
-                                    onclick=self.link.callback(|_| Msg::CreateValidate)
-                                >
-                                    {"Create new Connector"}
-                                </button>
-                            </div>
+                                            height:30px; 
+                                            margin:auto;
+                                        "
+                                        value={self.new_connector.token.clone()}
+                                        oninput=self.link.callback(|data: InputData| Msg::InputBotTok(data.value))
+                                        />
+                                    </div>
 
-                            {self.msg_1()}
+                                </div>
+                            }
+                        }else if self.new_connector.bot_type.eq("Slack"){
+                            html!{
+                                <div>
+                                    <div class="input-group" style=" margin: auto; width: 400px">
+                                        <input type="text" id="emailInput" class="form-control p-3 my-2 " placeholder="Bot Token"
+                                        style="
+                                            height:30px; 
+                                            margin:auto;
+                                        "
+                                        value={self.new_connector.token.clone()}
+                                        oninput=self.link.callback(|data: InputData| Msg::InputBotTok(data.value))
+                                        />
+                                    </div>
+                                </div>
+                            }
+                        }else{html!{}}
+                        
+                    }
+                        
+                            
+                
+                    <div style=" text-align:center;"
+                    >
+                        <button type="button" class="home"
+                                style="
+                                background:#A73034;
+                                border-color:#A73034;
+                                color:white;
+                                border-radius:15px;
+                                height: 40px;
+                                margin-top:15px;
+                                
+                            " 
+                            data-bs-toggle="modal"
+                            data-bs-target="#display_msg"
+                            onclick=self.link.callback(|_| Msg::CreateValidate)
+                        >
+                            {"Create new Connector"}
+                        </button>
+                    </div>
 
-
+                          
+        
+                    
                 </div>
+                    {self.msg_1()}      
+            </div>
           
         }
     }
@@ -476,7 +435,7 @@ impl ConnectorCreate{
     fn msg_1(&self)->Html{
         html!{
             <div style="background: #A73034; font-family: Alexandria; color: #A73034;" >
-                <div class="modal fade" id="display_msg" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true"
+                <div class="modal fade" id="display_msg" data-bs-backdrop="static" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true"
                 >
                     <div class="modal-dialog"
                     >
@@ -490,6 +449,7 @@ impl ConnectorCreate{
                                     class="btn-close"
                                     data-bs-dismiss="modal"
                                     aria-label="close"
+                                    onclick=self.link.callback(|_| Msg::CheckSuccess)
                                 >
                                 </button>
                             </div>

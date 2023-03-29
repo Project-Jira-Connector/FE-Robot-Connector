@@ -68,7 +68,7 @@ impl Component for NavtopConnector {
                         <ul class="serviceProjects">
                             <li>
                                 <Anchor route=AppRoute::RobotHome>
-                                            {"Homepage"}
+                                            {"Create"}
                                 </Anchor>
                             </li>
                         </ul>

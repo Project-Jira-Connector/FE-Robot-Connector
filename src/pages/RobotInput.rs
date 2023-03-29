@@ -16,16 +16,12 @@ use yew_router::agent::RouteRequest::ChangeRoute;
 // };
 use crate::router::route::AppRoute;
 use crate::types::var::{
-    UserAccount,
     UsersData,
     ProjectId,
     PostReturnValue,
     Users
 };
 
-use crate::pages::RobotCreate::{
-    RobotCreate
-};
 
 
 pub enum Msg {
@@ -52,6 +48,8 @@ pub enum Msg {
     Home,
     SendData,
     RunProgram,
+    doubleEmailThreshold(f32),
+    doubleNameThreshold(f32),
 }
 
 #[derive(Properties, Clone)]
@@ -99,14 +97,16 @@ impl Component for RobotInput {
                 description: String::from(""),
                 platformEmail: String::from(""),
                 platformApiKey: String::from(""),
-                platformType: String::from(""),
+                // platformType: String::from(""),
                 cloudSessionToken: String::from(""),
                 active: false,
                 schedule: 0,
                 lastActive: 0,
                 checkDoubleName: false,
                 checkDoubleEmail: false,
-                checkActiveStatus: false
+                checkActiveStatus: false,
+                doubleEmailThreshold: 100.0,
+                doubleNameThreshold: 100.0,
             },
         }
         
@@ -122,7 +122,7 @@ impl Component for RobotInput {
                     .body(Nothing)
                     .expect("Could not build request.");
                 let callback = 
-                    self.link.callback(|response: Response<Json<Result<Vec<UsersData>, anyhow::Error>>>| {
+                    self.link.callback(|response: Response<Json<Result<UsersData, anyhow::Error>>>| {
                         let (meta, Json(data)) = response.into_parts();
 
                         let status_number = meta.status.as_u16();
@@ -132,7 +132,7 @@ impl Component for RobotInput {
                         match data {
                             Ok(dataok) => {
                                 ConsoleService::info(&format!("data response {:?}", &dataok));
-                                Msg::FetchOne(dataok.get(0).unwrap().clone())
+                                Msg::FetchOne(dataok)
                             }
                             Err(error) => {
                                 ConsoleService::info("ignore.");
@@ -192,7 +192,7 @@ impl Component for RobotInput {
                     description: self.data.description.clone(),
                     platformEmail: self.data.platformEmail.clone(),
                     platformApiKey: self.data.platformApiKey.clone(),
-                    platformType: self.data.platformType.clone(),
+                    // platformType: self.data.platformType.clone(),
                     cloudSessionToken: self.data.cloudSessionToken.clone(),
                     active: self.data.active.clone(),
                     schedule: self.data.schedule.clone(),
@@ -200,6 +200,8 @@ impl Component for RobotInput {
                     checkActiveStatus: self.data.checkActiveStatus.clone(),
                     checkDoubleName: self.data.checkDoubleName.clone(),
                     checkDoubleEmail: self.data.checkDoubleEmail.clone(),
+                    doubleEmailThreshold: self.data.doubleEmailThreshold.clone(),
+                    doubleNameThreshold: self.data.doubleNameThreshold.clone(),
                 };
 
                 ConsoleService::info(&format!("CheckUpdate {:?}", update));
@@ -269,11 +271,11 @@ impl Component for RobotInput {
                 self.data.cloudSessionToken = data;
                 true
             }
-            Msg::InputSelect(data) => {
-                ConsoleService::info(&format!("data input select is {:?}", data));
-                self.data.platformType = data;
-                true
-            }
+            // Msg::InputSelect(data) => {
+            //     ConsoleService::info(&format!("data input select is {:?}", data));
+            //     self.data.platformType = data;
+            //     true
+            // }
             Msg::InputActive(data) => {
                 ConsoleService::info(&format!("data input select is {:?}", data));
                 self.data.lastActive = data.parse::<i64>().unwrap();
@@ -347,6 +349,16 @@ impl Component for RobotInput {
             Msg::Ignore => {
                 false
             }
+            Msg::doubleEmailThreshold(data) => {
+                self.data.doubleEmailThreshold = data;
+                ConsoleService::info(&format!("Email Threshold {:?}", self.data.doubleEmailThreshold));
+                true 
+            }
+            Msg::doubleNameThreshold(data) => {
+                self.data.doubleNameThreshold = data;
+                ConsoleService::info(&format!("Name Threshold {:?}", self.data.doubleNameThreshold));
+                true 
+            }
         }
     }
 
@@ -365,7 +377,8 @@ impl Component for RobotInput {
 
     fn view(&self) -> Html {
 
-
+        let checked_name=self.data.checkDoubleName;
+        let checked_email=self.data.checkDoubleEmail;
 
         html! {
         <div class="base-form">
@@ -403,20 +416,20 @@ impl Component for RobotInput {
                         value={self.data.platformApiKey.clone()}
                         />
                 </div>
-                <select class="form-select mb-4" style=" margin: auto; width: 400px;" aria-label="Default select example"
-                    onchange=self.link.callback(|e| {
-                        if let ChangeData::Select(select) = e {
-                            let value = select.value();
-                            Msg::InputSelect(value)
-                        } else {
-                            Msg::InputSelect("No value".to_string())
-                        }
-                    })
-                >
-                    <option>{self.data.platformType.clone()}</option>
-                    <option value="SERVER">{ "Server" }</option>
-                    <option value="CLOUD">{ "Cloud" }</option>
-                </select>
+                // <select class="form-select mb-4" style=" margin: auto; width: 400px;" aria-label="Default select example"
+                //     onchange=self.link.callback(|e| {
+                //         if let ChangeData::Select(select) = e {
+                //             let value = select.value();
+                //             Msg::InputSelect(value)
+                //         } else {
+                //             Msg::InputSelect("No value".to_string())
+                //         }
+                //     })
+                // >
+                //     <option>{self.data.platformType.clone()}</option>
+                //     <option value="SERVER">{ "Server" }</option>
+                //     <option value="CLOUD">{ "Cloud" }</option>
+                // </select>
                  // onchange=self.link.callback(|_| {
                 //     // Msg::SelectProject
                 // })
@@ -444,11 +457,57 @@ impl Component for RobotInput {
                 <div class="form-check mb-3" style="margin: auto; width:400px;">
                 <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" 
                 onclick=self.link.callback(|_| Msg::CheckDoubleEmail) checked={self.data.checkDoubleEmail}/>
+                {
+                    if checked_email==true{
+                        html!{
+                            <label for="customRange3" class="form-label">{"Accuracy 0-100"}
+                                <input type="range" class="form-range" min="0" max="100" step="1" id="customRange3"
+                                value={self.data.doubleEmailThreshold.to_string()}
+                                onchange=self.link.callback(|data: ChangeData|{
+                                    if let ChangeData::Value(value)=data{
+                                        Msg::doubleEmailThreshold(value.parse::<f32>().unwrap())
+                                    }else{
+                                        Msg::Ignore
+                                    }
+                                })
+                                />
+                            </label>
+                        }
+                    }else{
+                        html!{
+
+                        }
+
+                    }
+                }
                         <label class="form-check-label" for="flexCheckDefault">{"Double Email"}</label>
                 </div>
                 <div class="form-check mb-3" style="margin: auto; width:400px;">
                 <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault"
                 onclick=self.link.callback(|_| Msg::CheckDoubleName) checked={self.data.checkDoubleName}/>
+                {
+                    if checked_name==true{
+                        html!{
+                            <label for="customRange3" class="form-label">{"Accuracy 0-100"}
+                                <input type="range" class="form-range" min="0" max="100" step="1" id="customRange3"
+                                value={self.data.doubleNameThreshold.to_string()}
+                                onchange=self.link.callback(|data: ChangeData|{
+                                    if let ChangeData::Value(value)=data{
+                                        Msg::doubleNameThreshold(value.parse::<f32>().unwrap())
+                                    }else{
+                                        Msg::Ignore
+                                    }
+                                })
+                                />
+                            </label>
+                        }
+                    }else{
+                        html!{
+
+                        }
+
+                    }
+                }
                         <label class="form-check-label" for="flexCheckDefault">{"Double Name"}</label>
                 </div>
                 <div class="form-check mb-3" style="margin: auto; width:400px;">

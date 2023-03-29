@@ -107,17 +107,20 @@ impl Component for ConnectorHome {
         
 
         html! {
-            <div
-                style="
-                    background: white;
-                    color: white;
-                    font-family: Alexandria;
-
-                "
-            >
-                <div class="createnew" style= "padding-top:100px;"></div>
-                    
-                {self.view_index_data()}
+            <div>
+                <div
+                    style="
+                        background: #E3E8ED; 
+                        position: absolute;
+                        padding-top: 125px;
+                        right: 0;
+                        left: 0;
+                        overflow: auto;
+                        height: 100%;
+                    "
+                >       
+                    {self.view_index_data()}
+                </div>
             </div>
         }
     }

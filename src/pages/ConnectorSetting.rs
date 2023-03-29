@@ -503,31 +503,7 @@ impl Component for ConnectorSetting {
                             }  
                         }
                     }).collect();
-                    // self.project_stat = project_stat;
-
-                    // for x in data {
-                    //     for i in &id_project {
-                    //         let mut project = ProjectStat { 
-                    //             id: x.id.clone(),
-                    //             name: x.name.clone(), 
-                    //             status: false 
-                    //         };
-
-                    //         if x.id == *i {
-                    //             project.status = true;
-                    //             self.project_stat.push(
-                    //                 project
-                    //             )
-                    //         } else if !self.project_stat.contains(&project) {
-                    //             self.project_stat.push(
-                    //                 project
-                    //             );  
-                    //         }
-                    //     }
-                    // }
                 }
-
-
                 ConsoleService::info(&format!("Selected Project {:?}", self.user_setting.project));
                 ConsoleService::info(&format!("Project Stat {:?}", self.project_stat));
                 true
@@ -605,7 +581,7 @@ impl Component for ConnectorSetting {
         
 
         html! {
-            <div class="container-form"
+            <div
             >
                 <div 
                     style= "
@@ -615,26 +591,44 @@ impl Component for ConnectorSetting {
                     "
                     
                 >
-                    
-                    <button 
-                        type="button"
-                        class="btn btn-info mt-4 mb-3"
-                        style="
-                            background:#A73034;
-                            border-color:#A73034;
-                            color:white;
-                        "
-                        
-                        onclick=self.link.callback(|_| Msg::Active_btn)
-                    >
-                        {
-                            if event_button == true {
-                                {"ON"}
-                            } else {
-                                {"OFF"}
+                    {
+                        if event_button == true{
+                            html!{
+                                <button 
+                                    type="button"
+                                    class="btn btn-info mt-4 mb-3"
+                                        style="
+                                            background: green;
+                                            border-color:green;
+                                            color:white;
+                                            width:60px;
+                                        "
+                                    
+                                    onclick=self.link.callback(|_| Msg::Active_btn)
+                                >
+                                    {"ON"}
+                                </button>
+                            }
+                        }else{
+                            html!{
+                                <button 
+                                    type="button"
+                                    class="btn btn-info mt-4 mb-3"
+                                    style="
+                                        background:#A73034;
+                                        border-color:#A73034;
+                                        color:white;
+                                        width:60px;
+                                    "
+                                
+                                    onclick=self.link.callback(|_| Msg::Active_btn)
+                                >
+                                    {"OFF"}
+                                </button>
                             }
                         }
-                    </button>
+                    }
+
                        
                 </div>
                   

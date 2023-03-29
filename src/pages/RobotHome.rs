@@ -11,9 +11,7 @@ use yew::{
 
 use yew_router::prelude::*;
 use crate::router::route::AppRoute;
-use crate::types::var::{
-    UserAccount,
-};
+
 
 pub enum Msg {
     AddOne,

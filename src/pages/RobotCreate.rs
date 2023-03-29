@@ -14,8 +14,6 @@ use yew_router::agent::RouteRequest::ChangeRoute;
 
 use crate::router::route::AppRoute;
 use crate::types::var::{
-    UserAccount,
-    PostReturnValue,
     Users
 };
 
@@ -30,10 +28,11 @@ pub enum Msg {
     InputToken(String),
     InputSelect(String),
     InputActive(String),
+    doubleEmailThreshold(f32),
+    doubleNameThreshold(f32),
     CheckActiveStatus,
     CheckDoubleName,
     CheckDoubleEmail,
-    Login,
     GetData(String),
     Ignore,
     GetName(Users),
@@ -56,6 +55,8 @@ pub struct RobotCreate {
     checkActiveStatus: bool,
     checkDoubleName: bool,
     checkDoubleEmail: bool,
+    doubleNameThreshold: f32,
+    doubleEmailThreshold: f32,
     
     username: String,
     status: String,
@@ -85,6 +86,8 @@ impl Component for RobotCreate {
             checkActiveStatus: false,
             checkDoubleName: false,
             checkDoubleEmail: false,
+            doubleNameThreshold: 100.0,
+            doubleEmailThreshold: 100.0,
 
             username: String::from(""),
             status: String::from(""),
@@ -110,7 +113,7 @@ impl Component for RobotCreate {
                     description: self.description.clone(),
                     platformEmail: self.platformEmail.clone(),
                     platformApiKey: self.platformApiKey.clone(),
-                    platformType: self.platformType.clone(),
+                    // platformType: self.platformType.clone(),
                     cloudSessionToken: self.cloudSessionToken.clone(),
                     active: self.active.clone(),
                     schedule: self.schedule.clone(),
@@ -118,6 +121,8 @@ impl Component for RobotCreate {
                     checkActiveStatus: self.checkActiveStatus.clone(),
                     checkDoubleName: self.checkDoubleName.clone(),
                     checkDoubleEmail: self.checkDoubleEmail.clone(),
+                    doubleEmailThreshold: self.doubleEmailThreshold.clone(),
+                    doubleNameThreshold: self.doubleNameThreshold.clone()
                 };
 
                 //FETCHING
@@ -127,7 +132,7 @@ impl Component for RobotCreate {
                 .expect("Request Error");
 
                 let callback = 
-                self.link.callback(|response: Response<Json<Result<PostReturnValue, Error>>>| {
+                self.link.callback(|response: Response<Json<Result<Users, Error>>>| {
                     let (meta, Json(data)) = response.into_parts();
                     let status_number = meta.status.as_u16();
                     ConsoleService::info(&format!("Status is{:?}", status_number));
@@ -138,6 +143,8 @@ impl Component for RobotCreate {
                         }
                         Err(error)=>{
                             ConsoleService::info("Ignore");
+                            ConsoleService::info(&format!("Data error {:?}", error));
+
                             Msg::Ignore
                         }
                     }
@@ -216,46 +223,17 @@ impl Component for RobotCreate {
                 ConsoleService::info(&format!("check double name is {:?}", self.checkActiveStatus));
                 true
             }
-
-            Msg::Login => {
-                // FETCHING....
-
-                let user_account = UserAccount {
-                    username: self.username.clone(),
-                    status: self.status.clone(),
-                };
-
-
-                let request = Request::post("https://atlassian-robot-api.dev-domain.site/robots")
-                    // .header("access_token", get_access_token().unwrap_or_default())
-                    .header("Content-Type", "application/json")
-                    .body(Json(&user_account))
-                    .expect("Could not build request.");
-                let callback = 
-                    self.link.callback(|response: Response<Json<Result<String, anyhow::Error>>>| {
-                        let (meta, Json(data)) = response.into_parts();
-
-                        let status_number = meta.status.as_u16();
-
-                        ConsoleService::info(&format!("status is {:?}", status_number));
-                        match data {
-                            Ok(dataok) => {
-                                ConsoleService::info(&format!("data response {:?}", &dataok));
-                                Msg::GetData(dataok)
-                            }
-                            Err(error) => {
-                                ConsoleService::info("ignore.");
-                                Msg::Ignore
-                            }
-                        }
-                    });
-                let task = FetchService::fetch(request, callback).expect("failed to start request");
-
-                self.fetch_task = Some(task);
-
-
+            Msg::doubleNameThreshold(data)=> {
+                self.doubleNameThreshold = data;
+                ConsoleService::info(&format!("Name Threshold {:?}", self.doubleNameThreshold));
                 true
             }
+            Msg::doubleEmailThreshold(data) => {
+                self.doubleEmailThreshold = data;
+                ConsoleService::info(&format!("Email Threshold {:?}", self.doubleEmailThreshold));
+                true 
+            }
+
             Msg::GetData(data) => {
                 ConsoleService::info(&format!("get data {:?}", data));
 
@@ -277,6 +255,18 @@ impl Component for RobotCreate {
     }
 
     fn view(&self) -> Html {
+
+        let checked_email=self.checkDoubleEmail;
+        let checked_name=self.checkDoubleName;
+
+        // let onchange=self.link.batch_callback(|data|{
+        //     if let ChangeData::Value(value) = data{
+        //         Some(value.parse::<f32>().unwrap())
+        //     }else{
+        //       None
+        //     }
+        // });
+
         html! {
             <div class="base-form">
                 <div class="create">
@@ -313,20 +303,20 @@ impl Component for RobotCreate {
                         />
                 </div>
                 
-                <select class="form-select mb-3" style=" margin: auto; width: 400px;" aria-label="Default select example"
-                    onchange=self.link.callback(|e| {
-                        if let ChangeData::Select(select) = e {
-                            let value = select.value();
-                            Msg::InputSelect(value)
-                        } else {
-                            Msg::InputSelect("No value".to_string())
-                        }
-                    })
-                >
-                    <option>{ "Select Platform"}</option>
-                    <option value="CLOUD">{ "Cloud" }</option>
-                    <option value="SERVER">{ "Server" }</option>
-                </select>
+                // <select class="form-select mb-3" style=" margin: auto; width: 400px;" aria-label="Default select example"
+                //     onchange=self.link.callback(|e| {
+                //         if let ChangeData::Select(select) = e {
+                //             let value = select.value();
+                //             Msg::InputSelect(value)
+                //         } else {
+                //             Msg::InputSelect("No value".to_string())
+                //         }
+                //     })
+                // >
+                //     <option>{ "Select Platform"}</option>
+                //     <option value="CLOUD">{ "Cloud" }</option>
+                //     <option value="SERVER">{ "Server" }</option>
+                // </select>
                 // <h5>{"Notification Setting"}</h5>
                 // <div class="input-group mb-3" style=" margin: auto; width: 400px">
                 //     <span class="input-group-text"></span>
@@ -358,15 +348,61 @@ impl Component for RobotCreate {
                 </select>
                 <div class="form-check mb-3" style="margin: auto; width:400px;">
                 <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" onclick=self.link.callback(|_| Msg::CheckDoubleEmail) checked={self.checkDoubleEmail}/>
-                        <label class="form-check-label" for="flexCheckDefault">{"Active Email"}</label>
+                {
+                    if checked_email==true{
+                        html!{
+                            <label for="customRange3" class="form-label">{"Accuracy 0-100"}
+                                <input type="range" class="form-range" min="0" max="100" step="1" id="customRange3"
+                                value={self.doubleEmailThreshold.to_string()}
+                                onchange=self.link.callback(|data: ChangeData|{
+                                    if let ChangeData::Value(value)=data{
+                                        Msg::doubleEmailThreshold(value.parse::<f32>().unwrap())
+                                    }else{
+                                        Msg::Ignore
+                                    }
+                                })
+                                />
+                            </label>
+                        }
+                    }else{
+                        html!{
+
+                        }
+
+                    }
+                }
+                        <label class="form-check-label" for="flexCheckDefault">{"Double Email"}</label>
                 </div>
                 <div class="form-check mb-3" style="margin: auto; width:400px;">
                 <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" onclick=self.link.callback(|_| Msg::CheckDoubleName) checked={self.checkDoubleName}/>
+                {
+                    if checked_name==true{
+                        html!{
+                            <label for="customRange3" class="form-label">{"Accuracy 0-100"}
+                                <input type="range" class="form-range" min="0" max="100" step="1" id="customRange3"
+                                value={self.doubleNameThreshold.to_string()}
+                                onchange=self.link.callback(|data: ChangeData|{
+                                    if let ChangeData::Value(value)=data{
+                                        Msg::doubleNameThreshold(value.parse::<f32>().unwrap())
+                                    }else{
+                                        Msg::Ignore
+                                    }
+                                })
+                                />
+                            </label>
+                        }
+                    }else{
+                        html!{
+
+                        }
+
+                    }
+                }
                     <label class="form-check-label" for="flexCheckDefault">{"Double Name"}</label>
                 </div>
                 <div class="form-check mb-3" style="margin: auto; width:400px;">
                 <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" onclick=self.link.callback(|_| Msg::CheckActiveStatus) checked={self.checkActiveStatus}/> 
-                    <label class="form-check-label" for="flexCheckDefault">{"Double Email"}</label>
+                    <label class="form-check-label" for="flexCheckDefault">{"Active Status"}</label>
                 </div>
 
                 <select class="form-select mb-4" style=" margin: auto; width: 400px;" aria-label="Default select example"
@@ -392,7 +428,7 @@ impl Component for RobotCreate {
                         Msg::RequestPostData
                     })
                 >       
-                    { "RobotCreate" }
+                    { "Create" }
                 </button>
                 </div>
             </div>

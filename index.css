@@ -1,7 +1,15 @@
+*{
+    font-family: Alexandria !important;
+}
+
 a{
     text-decoration: none !important;
 };
 
+.modal{
+    overflow:auto !important;
+    
+}
 
 .text-big{
     font-size: 40px;
@@ -76,6 +84,17 @@ a {
     background-color: white;
     padding: 30px;
     margin-top: 23px;
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%);
+    width: 50vh;
+    border-radius: 20px;
+}
+
+.base-form .create-connector{
+    background-color: white;
+    padding: 30px;
+    margin-top: 125px;
     position: absolute;
     left: 50%;
     transform: translate(-50%);

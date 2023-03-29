@@ -105,7 +105,7 @@ impl Component for RobotProject {
                         match data {
                             Ok(dataok) => {
                                 ConsoleService::info(&format!("data response {:?}", &dataok));
-                                if status_number == 200 {
+                                if status_number == 302 {
                                     Msg::GetData(dataok)
                                 } else {
                                     Msg::ResponseError(String::from("status bukan 200"))

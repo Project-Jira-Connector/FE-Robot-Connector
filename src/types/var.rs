@@ -90,13 +90,15 @@ pub struct Users {
     pub cloudSessionToken: String,
     pub platformApiKey: String,
     pub platformEmail: String,
-    pub platformType: String,
+    // pub platformType: String,
     pub schedule: i64,
     pub lastActive: i64,
     pub active: bool,
     pub checkActiveStatus: bool,
     pub checkDoubleEmail: bool,
     pub checkDoubleName: bool,
+    pub doubleNameThreshold: f32,
+    pub doubleEmailThreshold: f32
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -113,7 +115,7 @@ pub struct UsersData {
     pub description: String,
     pub platformEmail: String,
     pub platformApiKey: String,
-    pub platformType: String,
+    // pub platformType: String,
     pub cloudSessionToken: String,
     pub active: bool,
     pub schedule: i64,
@@ -121,6 +123,8 @@ pub struct UsersData {
     pub checkDoubleName: bool,
     pub checkDoubleEmail: bool,
     pub checkActiveStatus: bool,
+    pub doubleNameThreshold: f32,
+    pub doubleEmailThreshold: f32,
 }
 
 #[derive(Deserialize, Debug, Clone)]
