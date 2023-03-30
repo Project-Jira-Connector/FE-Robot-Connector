@@ -826,70 +826,41 @@ impl Component for ConnectorSetting {
                         //Flex Button
                         <div style="display:flex; justify-content: space-around; padding-top:15px;"
                         >  
-                            // Button Delete
-                            <button type="button" class="delete"
-                                style="
-                                    background-color: red; 
-                                    color: white; 
-                                    height: 40px;
-                                    border:none;   
-                                "
-                                data-bs-toggle="modal"
-                                data-bs-target="#DeleteModal"
-                            >
-                                {"Delete Connector"}
-                            </button>
-                                    
-                                    
-                            {//ON OFF BUTTON
+                        {//ON OFF BUTTON
                                 if event_button == true{
                                     html!{
-                                        <button 
-                                            type="button"
-                                                style="
-                                                    background: green;
-                                                    color:white;
-                                                    height: 40px; 
-                                                    border:none;   
-                                                "
-                                                
-                                            onclick=self.link.callback(|_| Msg::Active_btn)
-                                        >
+                                        <button type="button" class="btn btn-primary"
+                                                onclick=self.link.callback(|_| Msg::Active_btn)
+                                                >
                                             {"Active"}
                                             </button>
                                         }
                                 }else{
                                     html!{
-                                        <button 
-                                            type="button"
-                                            style="
-                                                background:#A73034;
-                                                color:white;
-                                                height: 40px; 
-                                                border:none;   
-                                            "
-                                        
+                                        <button type="button" class="btn btn-secondary"
                                             onclick=self.link.callback(|_| Msg::Active_btn)
                                             >
                                             {"Deactive"}
                                             </button>
                                         }
-                                }
-                            }// END ON OFF BUTTON
-                                    
+                                    }
+                                }// END ON OFF BUTTON
+                                
+                                // Button Delete
+                                <button type="button" class="btn btn-danger"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#DeleteModal"
+                                >
+                                    {"Delete"}
+                                </button>
+
                             // Button Save changes
-                            <button type="button"
-                                style="
-                                    background-color: #006d90; 
-                                    color: white; 
-                                    height: 40px;   
-                                    border:none;   
-                                "
+                            <button type="button" class="btn btn-success"
                                 data-bs-toggle="modal"
                                 data-bs-target="#display_msg"
                                 onclick=self.link.callback(|_| Msg::UpdateValidate)
                             >
-                                {"Save Changes"}
+                                {"Save"}
                             </button>
                         </div>
 
