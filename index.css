@@ -2,10 +2,6 @@
     font-family: Alexandria !important;
 }
 
-a{
-    text-decoration: none !important;
-};
-
 .modal{
     overflow:auto !important;
     
@@ -17,6 +13,7 @@ a{
 
 a {
     text-decoration: none!important;
+    color:white !important;
 }
 
 .link {
@@ -82,6 +79,50 @@ a {
     right: 0;
     left: 0;
     margin-bottom: 50px;
+}
+
+.base-form2{
+    padding-top: 15px;
+    text-align: center;
+    height: 115vh;
+    background-color: rgb(228, 228, 228);
+    position: absolute;
+    right: 0;
+    left: 0;
+}
+
+.base-form2 .form{
+    background-color: white;
+    height: 100vh;
+    padding: 30px;
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%);
+    width: 50vh;
+    border-radius: 20px;
+}
+
+
+.base-form2 .create{
+    background-color: white;
+    padding: 30px;
+    margin-top: 23px;
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%);
+    width: 50vh;
+    border-radius: 20px;
+}
+
+.base-form2 .create-connector{
+    background-color: white;
+    padding: 30px;
+    margin-top: 125px;
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%);
+    width: 50vh;
+    border-radius: 20px;
 }
 
 .base-form .form{

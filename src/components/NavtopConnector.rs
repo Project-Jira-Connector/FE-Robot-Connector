@@ -84,22 +84,10 @@ impl Component for NavtopConnector {
                     </Anchor>
 
                     //Connector
+                    <Anchor route=AppRoute::ConnectorHome>
                     <li class="sidebarDrop"><a>{"Atlassian Connector"}</a>
-                        <ul class="serviceProjects">
-                            <li>
-                                <Anchor route=AppRoute::ConnectorHome>
-                                    {"Homepage"}
-                                </Anchor>
-                            </li>
-                        </ul>
-                        <ul class="serviceProjects">
-                            <li>
-                                <Anchor route=AppRoute::ConnectorCreate>
-                                    {"Create New Connector"}
-                                </Anchor>
-                            </li>
-                        </ul>
                     </li>
+                    </Anchor>
                     
                 </ul>
             </div>

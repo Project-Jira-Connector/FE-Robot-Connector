@@ -570,4 +570,5 @@ impl RobotCreate{
                 //         <input type="text" class="form-control" placeholder="Password"
                 //         oninput=self.link.callback(|data: InputData| Msg::InputText(data.value))
                 //         />
-                // </div>
+
+//push
