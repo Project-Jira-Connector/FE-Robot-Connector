@@ -443,7 +443,7 @@ impl ConnectorCreate{
                         >
                             <div class="modal-header"
                             >
-                                <h5 class="modal-tittle"> <p> {format!("{}!",self.msg_err.header)} </p> </h5>
+                                <h5 class="modal-tittle"> <p> {format!("{} !",self.msg_err.header)} </p> </h5>
                                 <button 
                                     type="button"
                                     class="btn-close"

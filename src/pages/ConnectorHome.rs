@@ -102,23 +102,27 @@ impl Component for ConnectorHome {
     }
 
     fn view(&self) -> Html {
-
         type Anchor = RouterAnchor<AppRoute>;
-        
-
         html! {
             <div>
                 <div
                     style="
                         background: #E3E8ED; 
                         position: absolute;
-                        padding-top: 125px;
+                        padding-top: 95px;
                         right: 0;
                         left: 0;
                         overflow: auto;
                         height: 100%;
                     "
-                >       
+                >    
+                    <div style="padding-bottom:30px;">   
+                        <button type="button" style=" margin-left:87%; background:#A73034; border-color:#A73034;  color:white;  border-radius:15px; height: 40px;"> 
+                            <Anchor route=AppRoute::ConnectorCreate> 
+                                {"Create new Connector"}  
+                            </Anchor>
+                        </button>
+                    </div>
                     {self.view_index_data()}
                 </div>
             </div>
@@ -132,7 +136,7 @@ impl ConnectorHome {
         self.homepage.iter().map(|card|{
             ConsoleService::info(&format!("Name adalah {:?}",card.name.to_string()));
                 html!{
-                    <Anchor route=AppRoute::ConnectorSetting { _name:card.name.to_string()}>
+
                         <div class="card mt-4 mb-2"
                             style="
                                 text-decoration:none;
@@ -145,6 +149,7 @@ impl ConnectorHome {
                                 margin:auto;
                             "
                         >
+                            <Anchor route=AppRoute::ConnectorSetting { _name:card.name.to_string()}>
                             <div class="card-body"
                                 style="
                                     color:#394A59;
@@ -171,8 +176,9 @@ impl ConnectorHome {
                                     {"Connector to : "}{&card.bot_type}
                                 </p>
                             </div>
+                            </Anchor>
                         </div>
-                    </Anchor>
+                    
                 }
         }).collect()          
     }

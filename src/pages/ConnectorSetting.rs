@@ -52,6 +52,9 @@ pub enum Msg {
     CopyDataProject(Vec<ProjectID>),
     TriggerProject(usize),
     UpdateValidate,
+    CheckInput,
+    InputErrorMsg(String),
+    CheckSuccess,
 }
 
 pub struct ConnectorSetting {
@@ -183,7 +186,6 @@ impl Component for ConnectorSetting {
                 true
 
             }
-
             Msg::UpdateConnector => {
 
                 let mut final_project:Vec<ProjectID> = Vec::new();
@@ -224,12 +226,13 @@ impl Component for ConnectorSetting {
                         ConsoleService::info(&format!("data response {:?}", &data));
 
                         if meta.status.is_success(){
-                            Msg::Direct
+                            Msg::CheckInput
                         }else{
                             match data {
                                 Ok(dataok) => {
                                     ConsoleService::info(&format!("data response {:?}", &dataok));
-                                    Msg::Direct
+                                    Msg::InputErrorMsg(dataok)
+                                    // Msg::Direct;
                                 }
                                 Err(error) => {
                                     ConsoleService::info("ignore.");
@@ -432,38 +435,63 @@ impl Component for ConnectorSetting {
                 ConsoleService::info(&format!("error is {:?}", text));
                 true
             }
+            Msg::InputErrorMsg(dataok) => {
+                self.msg_err.header = "Error".to_string();
+                self.msg_err.body = dataok;
+                true
+            }
+            Msg::CheckInput => {
+                if self.msg_err.body.is_empty(){
+                    self.msg_err.header = "Success".to_string();
+                    self.msg_err.body = "You have Updated your connector".to_string();
+                }else{
+                    self.link.send_message(Msg::Ignore);
+                }
+                true
+            }
             Msg::UpdateValidate => {
-                // if self.user_setting.name.is_empty(){
-                //    self.msg_err.header = "Error".to_string();
-                //    self.msg_err.body = "Name field cannot be empty".to_string();
-                // }else{
-                //     if self.user_setting.email.is_empty(){
-                //         self.msg_err.header = "Error".to_string();
-                //         self.msg_err.body = "Email field cannot be empty".to_string();
-                //     }else{
-                //         if self.user_setting.api_key.is_empty(){
-                //             self.msg_err.header = "Error".to_string();
-                //             self.msg_err.body = "Api key field cannot be empty".to_string();
-                //         }else{
-                //             if self.user_setting.bot_type.is_empty(){
-                //                 self.msg_err.header = "Error".to_string();
-                //                 self.msg_err.body = "Platform Notification field cannot be empty".to_string();
-                //             }else{
-                //                 if self.user_setting.chatid.is_empty() && self.new_connector.bot_type != "Slack"{
-                //                     self.msg_err.header = "Error".to_string();
-                //                     self.msg_err.body = "Group Chat ID field cannot be empty".to_string();
-                //                 }else{
-                //                     if self.user_setting.token.is_empty(){
-                //                         self.msg_err.header = "Error".to_string();
-                //                         self.msg_err.body = "Bot Token field cannot be empty".to_string();
-                //                     }else{
-                //                         if self.user_setting.
-                //                     }
-                //                 }
-                //             }
-                //         }
-                //     }
-                // }
+                if self.user_setting.name.is_empty(){
+                    self.msg_err.header = "Error".to_string();
+                    self.msg_err.body = "Name field cannot be empty".to_string();
+                }else{
+                    if self.user_setting.email.is_empty(){
+                        self.msg_err.header = "Error".to_string();
+                        self.msg_err.body = "Email field cannot be empty".to_string();
+                    }else{
+                        if self.user_setting.api_key.is_empty(){
+                            self.msg_err.header = "Error".to_string();
+                            self.msg_err.body = "API keys field cannot be empty".to_string();
+                        }else{
+                            if self.user_setting.chatid.is_empty() && self.user_setting.bot_type != "Slack"{
+                                self.msg_err.header = "Error".to_string();
+                                self.msg_err.body = "Group Chat ID field cannot be empty".to_string();
+                            }else {
+                                if self.user_setting.token.is_empty(){
+                                    self.msg_err.header = "Error".to_string();
+                                    self.msg_err.body = "Bot Token field cannot be empty".to_string();
+                                }else {
+                                    if self.user_setting.event.is_empty(){
+                                        self.msg_err.header = "Error".to_string();
+                                        self.msg_err.body = "Notification Filter field cannot be empty".to_string();
+                                    }else {
+                                        self.msg_err.body = "".to_string();
+                                        self.link.send_message(Msg::UpdateConnector);
+                                    }
+                                }
+                            }
+
+                        }
+                    }
+                }
+                true
+            }
+            Msg::CheckSuccess => {           
+                if self.msg_err.header == "Success"{
+                    self.link.send_message(Msg::Direct)
+                }else{
+                    self.link.send_message(Msg::Ignore)
+                }                 
+
                 true
             }
             Msg::CopyDataSetting (data) => {
@@ -581,255 +609,367 @@ impl Component for ConnectorSetting {
         
 
         html! {
-            <div
-            >
-                <div 
-                    style= "
-                        padding-right: 30px;  
-                        padding-left: 84%;
-                        padding-top:50px;
-                    "
-                    
-                >
-                    {
-                        if event_button == true{
-                            html!{
-                                <button 
-                                    type="button"
-                                    class="btn btn-info mt-4 mb-3"
-                                        style="
-                                            background: green;
-                                            border-color:green;
-                                            color:white;
-                                            width:60px;
-                                        "
-                                    
-                                    onclick=self.link.callback(|_| Msg::Active_btn)
-                                >
-                                    {"ON"}
-                                </button>
-                            }
-                        }else{
-                            html!{
-                                <button 
-                                    type="button"
-                                    class="btn btn-info mt-4 mb-3"
-                                    style="
-                                        background:#A73034;
-                                        border-color:#A73034;
-                                        color:white;
-                                        width:60px;
-                                    "
-                                
-                                    onclick=self.link.callback(|_| Msg::Active_btn)
-                                >
-                                    {"OFF"}
-                                </button>
-                            }
-                        }
-                    }
+            <div>
+                <div class="base-form2">
+                    <div class="create-connector">
+                        <h5>{"Basic information"}</h5>
 
-                       
-                </div>
-                  
+                        <div class="input-group" style=" margin: auto; width: 400px">
+                            <input type="text" id="" class="form-control p-3 my-2" placeholder="Connector Name"
+                                style="
+                                    width: 400px;
+                                    height:30px;
+                                    margin:auto;
+                                "
+                                oninput=self.link.callback(|data: InputData| Msg::InputName(data.value))
+                                value={self.user_setting.name.clone()}
+                            />
+                        </div>
 
-                <div class="info"
-                    style="
-                        text-align:center;
-                        font-weight: bold;
-                    "
-                >
-                    <p> {"Basic Information"} </p>
-                </div>
+                        <div class="input-group" style=" margin: auto; width: 400px">
+                            <input type="text" id="" class="form-control p-3 my-2" placeholder="Description"
+                                style="
+                                    width: 400px;
+                                    height:30px;
+                                    margin:auto;
+                                "
+                                value={self.user_setting.description.clone()}
+                                oninput=self.link.callback(|data: InputData| Msg::InputDesc(data.value))
+                            />
+                        </div>
 
+                        <h5 style="padding-top:15px">{"Credential Platform"}</h5>
 
-                <input type="text" id="" class="form-control p-3 my-2 " placeholder="Connector Name"
-                    style="
-                        width: 400px;
-                        height:30px;
-                        margin:auto;
-                    "
-                    value={self.user_setting.name.clone()}
-                    oninput=self.link.callback(|data: InputData| Msg::InputName(data.value))
-                />
-                 
-
-                <div class="space"
-                    style="
-                        color:white;
-                        height: 5px;
-                    "
-                >
-                    <p> {"s"} </p>
-                </div>
-
-
-                <input type="text" id="" class="form-control p-3 my-2 " placeholder="Description"
-                    style="
-                        width: 400px;
-                        height:30px;
-                        margin:auto;
-                    "
-                    value={self.user_setting.description.clone()}
-                    oninput=self.link.callback(|data: InputData| Msg::InputDesc(data.value))
-                />
-                 
-
-                <div class="space"
-                    style="
-                        color:white;
-                        height: 15px;
-                    "
-                >
-                    <p> {"s"} </p>
-                </div>
-
-
-                <div class="info"
-                    style="
-                        text-align:center;
-                        font-weight: bold
-                    "
-                >
-                    <p> {"Credential Platform"} </p>
-                </div>
-                  
-
-                <input type="text" id="" class="form-control p-3 my-2 " placeholder="Email"
-                    style="
-                        width: 400px;
-                        height:30px;
-                        margin:auto;
-                    "
-                    value={self.user_setting.email.clone()}
-                    oninput=self.link.callback(|data: InputData| Msg::InputEmail(data.value))
-                />
-
-
-                <div class="space"
-                    style="
-                        color:white;
-                        height: 5px;
-                    "
-                >
-                    <p> {"s"} </p>
-                </div>
-
-
-                <input type="password" id="" class="form-control p-3 my-2 " placeholder="API Keys"
-                    style="
-                        width: 400px;
-                        height:30px;
-                        margin:auto;
-                    "
-                    value={self.user_setting.api_key.clone()}
-                    oninput=self.link.callback(|data: InputData| Msg::InputApi(data.value))
-                />
-
-
-                <div class="dropdown1" //sini
-                    style="
-                        color:white;
-                        height: 5px;
-                    "
-                >
-                    <div class="dropdown"
-                        style="
-                            color:#212529;
-                            margin:auto;
-                        "
-                    >
-
-                        <div class="space"
-                            style="
-                                color:white;
-                                height: 10px;
-                                margin:auto;
-                            "
-                        > 
+                        <div class="input-group" style=" margin: auto; width: 400px">
+                            <input type="text" id="" class="form-control p-3 my-2 " placeholder="Email"
+                                style="
+                                    width: 400px;
+                                    height:30px;
+                                    margin:auto;
+                                "
+                                value={self.user_setting.email.clone()}
+                                oninput=self.link.callback(|data: InputData| Msg::InputEmail(data.value))
+                            />
                         </div>
                         
 
-                            <div class="info"
-                                style="
-                                    text-align:center;
-                                    font-weight: bold
-                                "
+                        <div class="input-group" style=" margin: auto; width: 400px">
+                            <input type="password" id="" class="form-control p-3 my-2 " placeholder="API Keys"
+                            style="
+                                width: 400px;
+                                height:30px;
+                                margin:auto;
+                            "
+                            value={self.user_setting.api_key.clone()}
+                            oninput=self.link.callback(|data: InputData| Msg::InputApi(data.value))
+                            />
+                        </div>  
+
+                        <div class="info"
+                        >
+                            <h5 style="padding-top:15px">{"Pick Project"}</h5>
+                            
+                            <button
+                                type="button"
+                                class="btn btn-primary"
+                                data-bs-toggle="modal"
+                                data-bs-target="#exampleModal"
+                                style="margin:auto; width:400px; background:#A73034; margin-bottom:10px; border-color: gray; color:white;"
+                                onclick=self.link.callback(|_| Msg::RequestData)
                             >
-                                <p> {"Pick Project"} </p>
+                                {"Select Project"}
+                            </button>
+                        </div>
+
+                        <h5 style="padding-top:15px">{"Credential Bot"}</h5>
+
+
+                        // Platform Notif Select
+                        <form style="text-align:center; padding-top:5px;"
+                        >
+                            <select class="form-select mb-2" aria-label="Default select example"
+                                style="
+                                    margin:auto;
+                                    width: 400px;
+                                    height:36px;
+                                "
+                                onchange=self.link.callback(|e| {
+                                    if let ChangeData::Select(select) = e {
+                                        let value = select.value();
+                                        Msg::InputPlatNotif(value)
+                                    } else {
+                                        Msg::InputPlatNotif("No value".to_string())
+                                    }
+                                })
+                            >   
+                                <option selected={
+                                    if self.user_setting.bot_type == "Telegram"{true}
+                                    else{false} 
+                                }>{"Telegram"} </option>
+                                <option selected={
+                                    if self.user_setting.bot_type == "Slack" {true}
+                                    else {false} 
+                                }>{"Slack"} </option>
+                            </select>
+                        </form>
                                 
-                                
-                                <button
-                                    type="button"
-                                    class="btn btn-primary"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#exampleModal"
-                                    style="
-                                        width:400px;
-                                    "
-                                >
-                                    {"Pick your project"}
-                                </button>
-
-
-                                <div 
-                                    class="modal fade"
-                                    id="exampleModal"
-                                    tabindex="-1"
-                                    aria-labelledby="exampleModalLabel"
-                                    aria-hidden="true"
-                                >
-                                    <div class="modal-dialog modal-dialog-scrollable"
-                                    >
-                                        <div class="modal-content"
-                                        >
-                                            <div class="modal-header"
-                                            >
-                                                <h5 class="modal-tittle">
-                                                    <p> {"Project List"} </p>
-                                                </h5>
-
-                                                <button 
-                                                    type="button"
-                                                    class="btn-close"
-                                                    data-bs-dismiss="modal"
-                                                    aria-label="close"
-                                                >
-                                                </button>
-                                            </div>
-                                        
-                                        
-                                            <div class="modal-body"
+                        // Logic Select --> Groupchatid / Bot token
+                        {
+                            if self.user_setting.bot_type == "Telegram"{
+                                html!{
+                                    <div>
+                                        <div  class="input-group" style=" margin: auto; width: 400px">
+                                            <input type="text" id="Bot_Tok" class="form-control p-3 my-2 " placeholder="Bot Token"
                                                 style="
-                                                    text-align:center;
+                                                    width: 400px;
+                                                    height:30px;
                                                     margin:auto;
                                                 "
+                                                value={self.user_setting.token.clone()}
+                                                oninput=self.link.callback(|data: InputData| Msg::InputBotTok(data.value))
+                                            />
+                                        </div>
+
+                                        <div  class="input-group" style=" margin: auto; width: 400px">
+                                            <input type="text" id="Group_ID" class="form-control p-3 my-2 " placeholder="Group Chat ID"
+                                                style="
+                                                    width: 400px;
+                                                    height:30px;
+                                                    margin:auto;
+                                                "
+                                                value={self.user_setting.chatid.clone()}
+                                            oninput=self.link.callback(|data: InputData| Msg::InputGroupChatID(data.value))
+                                            />
+                                         </div>
+                                    </div>
+                                }
+                            }else{
+                                html!{
+                                    <div  class="input-group" style=" margin: auto; width: 400px">
+                                        <input type="text" id="Bot_Tok" class="form-control p-3 my-2 " placeholder="Bot Token"
+                                            style="
+                                                width: 400px;
+                                                height:30px;
+                                                margin:auto;
+                                            "
+                                            value={self.user_setting.token.clone()}
+                                            oninput=self.link.callback(|data: InputData| Msg::InputBotTok(data.value))
+                                        />
+                                    </div>
+                                }
+                            }
+                        } // Close logic select
+
+                        //Check Box
+                        <div>
+                            <div>
+                                <div style="text-align:center;">
+                                    <h5 style="padding-top:15px">{"Notification Filter"}</h5>
+                                </div>
+
+                                <div class="check-box"
+                                        style="
+                                        color:black;
+                                        margin:auto;
+                                        text-align:center;
+                                        padding-top:5px;
+                                        "
+                                >   
+                                    <div class="form-check mb-3" style="margin: auto; width:400px;">
+                                        <input class="form-check-input" type="checkbox" value="issuescreated" id="flexCheckDefault"
+                                        checked={event_issue_created} 
+                                        onclick=self.link.callback(|_| Msg::IssueCreated)
+                                        />
+                                            <label class="form-check-label" for="flexCheckDefault">{"Issues Created"}</label>
+                                    </div>
+
+                                    <div class="form-check mb-3" style="margin: auto; width:400px;">
+                                        <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault"
+                                        checked={event_issue_updated} 
+                                        onclick=self.link.callback(|_| Msg::IssueUpdated)
+                                        />
+                                            <label class="form-check-label" for="flexCheckDefault">{"Issues Updated"}</label>
+                                    </div>
+
+                                    <div class="form-check mb-3" style="margin: auto; width:400px;">
+                                        <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault"
+                                        checked={event_issue_deleted} 
+                                        onclick=self.link.callback(|_| Msg::IssueDeleted)  
+                                        />
+                                            <label class="form-check-label" for="flexCheckDefault">{"Issues Deleted"}</label>
+                                    </div>
+                                    <div class="form-check mb-3" style="margin: auto; width:400px;">
+                                        <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault"
+                                        checked={event_comment_created} 
+                                        onclick=self.link.callback(|_| Msg::CommentCreated)   
+                                        />
+                                            <label class="form-check-label" for="flexCheckDefault">{"Comment Created"}</label>
+                                    </div>
+                                    <div class="form-check mb-3" style="margin: auto; width:400px;">
+                                        <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault"
+                                        checked={event_comment_updated} 
+                                        onclick=self.link.callback(|_| Msg::CommentUpdated)   
+                                        />
+                                            <label class="form-check-label" for="flexCheckDefault">{"Comment Updated"}</label>
+                                    </div>
+                                    <div class="form-check mb-3" style="margin: auto; width:400px;">
+                                        <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault"
+                                        checked={event_comment_deleted} 
+                                        onclick=self.link.callback(|_| Msg::CommentDeleted) 
+                                        />
+                                            <label class="form-check-label" for="flexCheckDefault">{"Comment Deleted"}</label>
+                                    </div> 
+                                </div>
+                            </div>
+                        </div> // Close Check Box
+                        
+                        //Flex Button
+                        <div style="display:flex; justify-content: space-around; padding-top:15px;"
+                        >  
+                            // Button Delete
+                            <button type="button" class="delete"
+                                style="
+                                    background-color: red; 
+                                    color: white; 
+                                    height: 40px;
+                                    border:none;   
+                                "
+                                data-bs-toggle="modal"
+                                data-bs-target="#DeleteModal"
+                            >
+                                {"Delete Connector"}
+                            </button>
+                                    
+                                    
+                            {//ON OFF BUTTON
+                                if event_button == true{
+                                    html!{
+                                        <button 
+                                            type="button"
+                                                style="
+                                                    background: green;
+                                                    color:white;
+                                                    height: 40px; 
+                                                    border:none;   
+                                                "
+                                                
+                                            onclick=self.link.callback(|_| Msg::Active_btn)
+                                        >
+                                            {"Active"}
+                                            </button>
+                                        }
+                                }else{
+                                    html!{
+                                        <button 
+                                            type="button"
+                                            style="
+                                                background:#A73034;
+                                                color:white;
+                                                height: 40px; 
+                                                border:none;   
+                                            "
+                                        
+                                            onclick=self.link.callback(|_| Msg::Active_btn)
                                             >
-                                                {                                                
-                                                    self.project_stat.iter().enumerate().map(|(index,i)| {
-                                                            html! {
-                                                                <div class="form-check mb-3" style=" width:400px;"
-                                                                >
-                                                                    <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault"
-                                                                    checked={i.status}
-                                                                    onclick=self.link.callback(move |_| Msg::TriggerProject(index))
-                                                                    />
-                                                                    <label class="form-check-label" for="flexCheckDefault"
-                                                                    >
-                                                                    {&i.name}
-                                                                    
+                                            {"Deactive"}
+                                            </button>
+                                        }
+                                }
+                            }// END ON OFF BUTTON
+                                    
+                            // Button Save changes
+                            <button type="button"
+                                style="
+                                    background-color: #006d90; 
+                                    color: white; 
+                                    height: 40px;   
+                                    border:none;   
+                                "
+                                data-bs-toggle="modal"
+                                data-bs-target="#display_msg"
+                                onclick=self.link.callback(|_| Msg::UpdateValidate)
+                            >
+                                {"Save Changes"}
+                            </button>
+                        </div>
 
+                    </div>   
+                </div>
+                
+                //Modal Project List
+                <div 
+                    class="modal fade"
+                    id="exampleModal"
+                    tabindex="-1"
+                    aria-labelledby="exampleModalLabel"
+                    aria-hidden="true"
+                >
+                    <div class="modal-dialog modal-dialog-scrollable"
+                    >
+                        <div class="modal-content"
+                        >
+                            <div class="modal-header"
+                            >
+                                <h5 class="modal-tittle">
+                                    {
+                                        if self.project_stat.is_empty(){
+                                             {"Error !"} 
+                                        }else{
+                                             {"Project List"} 
+                                        }
+                                    }
+                                </h5>
 
-                                                                    </label>
-                                                                </div>
-                                                            }
-                                                        }
-                                                    ).collect::<Html>() 
+                                <button 
+                                    type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="modal"
+                                    aria-label="close"
+                                >
+                                </button>
+                            </div>
+                        
+                            <div class="modal-body" style=" text-align:center; margin:auto; "
+                            >
+                                {                                                
+                                    if self.project_stat.is_empty(){
+                                        html! {
+                                            {"Something went wrong, Please check your Email and API-Key "}
+                                            
+                                        }
+                                        
+                                    }else{
+                                        self.project_stat.iter().enumerate().map(|(index,i)| {
+                                                html! {
+                                                    <div class="form-check mb-3" style=" width:400px;"
+                                                    >
+                                                        <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault"
+                                                        checked={i.status}
+                                                        onclick=self.link.callback(move |_| Msg::TriggerProject(index))
+                                                        />
+                                                        <label class="form-check-label" for="flexCheckDefault"> {&i.name} </label>
+                                                    </div>
                                                 }
-                                            </div>
-
-                                            <div class="modal-footer"
+                                        }).collect::<Html>() 
+                                    }
+                                }
+                            </div>
+                            <div class="modal-footer"
+                            >
+                                {
+                                    if self.project_stat.is_empty(){
+                                        html!{
+                                            <button
+                                                type="button"
+                                                class="btn btn-secondary"
+                                                data-bs-dismiss="modal"
                                             >
+                                                {"close"}
+                                            </button> 
+                                        }
+                                    }else{
+                                        html!{
+                                            <>
                                                 <button
                                                     type="button"
                                                     class="btn btn-secondary"
@@ -845,351 +985,118 @@ impl Component for ConnectorSetting {
                                                 >
                                                     {"Save changes"}
                                                 </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                    </div>
-                        </div>
-                          
-                      <div class="space"
-                      style="
-                      color:white;
-                      height: 30px;
-                      "
-                 >
-                     <p> {"s"} </p>
-                 </div>
-
-                        <div> // atas
-                                    <div class="Credential bot"
-                                    style="
-                                    text-align:center;
-                                    height:30px;
-                                    "
-                            >
-                            <p
-                                style="
-                                color:black;
-                                font-weight: bold
-                                "
-                            > {"Credential Bot"} </p>
-                            </div>
-                            
-                            <form style="text-align:center; padding-top:15px;"
-                            >
-                                <select class="form-select mb-4" aria-label="Default select example"
-                                    style="
-                                        margin:auto;
-                                        width: 400px;
-                                        height:36px;
-                                    "
-                                    onchange=self.link.callback(|e| {
-                                        if let ChangeData::Select(select) = e {
-                                            let value = select.value();
-                                            Msg::InputPlatNotif(value)
-                                        } else {
-                                            Msg::InputPlatNotif("No value".to_string())
+                                            </>
                                         }
-                                    })
-                                >   
-                                <option selected={
-                                    if self.user_setting.bot_type == "Telegram"{true}
-                                    else{false} 
-                                }>{"Telegram"} </option>
-                                <option selected={
-                                    if self.user_setting.bot_type == "Slack" {true}
-                                    else {false} 
-                                }>{"Slack"} </option>
-                                    // <option value="Telegram">{"Telegram"}</option>
-                                    // <option value="Slack">{"Slack"}</option>
-
-                                   
-                                </select>
-                            </form>
-
-                            {
-                                if self.user_setting.bot_type == "Telegram"{
-                                    html!{
-                                        <div>
-                                            <input type="text" id="Bot_Tok" class="form-control p-3 my-2 " placeholder="Bot Token"
-                                                style="
-                                                    width: 400px;
-                                                    height:30px;
-                                                    margin:auto;
-                                                "
-                                                value={self.user_setting.token.clone()}
-                                                oninput=self.link.callback(|data: InputData| Msg::InputBotTok(data.value))
-                                            />
-                                        
-                                            <div class="space"
-                                                    style="
-                                                    color:white;
-                                                    height: 5px;
-                                                    "
-                                            >
-                                                <p> {"s"} </p>
-                                            </div>
-                                            <input type="text" id="Group_ID" class="form-control p-3 my-2 " placeholder="Group Chat ID"
-                                                style="
-                                                    width: 400px;
-                                                    height:30px;
-                                                    margin:auto;
-                                                "
-                                                value={self.user_setting.chatid.clone()}
-                                            oninput=self.link.callback(|data: InputData| Msg::InputGroupChatID(data.value))
-                                             />
-                                        </div>
-                                    }
-                                }else{
-                                    html!{
-                                        <div>
-                                            <input type="text" id="Bot_Tok" class="form-control p-3 my-2 " placeholder="Bot Token"
-                                                style="
-                                                    width: 400px;
-                                                    height:30px;
-                                                    margin:auto;
-                                                "
-                                                value={self.user_setting.token.clone()}
-                                                oninput=self.link.callback(|data: InputData| Msg::InputBotTok(data.value))
-                                            />
-
-                                        </div>
                                     }
                                 }
-                            }
-
-                            <div class="space"
-                                style="
-                                color:white;
-                                height: 30px;
-                                "
-                            >
-                                <p> {"s"} </p>
                             </div>
                         </div>
+                    </div>
+                </div> // End Modal Project List
 
-                        <div>//atas 2
-                            <div>
-                                <div style="text-align:center;height:30px;">
-                                <p style=" color:black; font-weight: bold; margin=auto;"> {"Notification Setting"} </p> </div>
-                                    <div class="check-box"
-                                         style="
-                                            color:black;
-                                            margin:auto;
-                                            text-align:center;
-                                         "
-                                   
-
-                                    >   
-                                        <div class="form-check mb-3" style="margin: auto; width:400px;">
-                                            <input class="form-check-input" type="checkbox" value="issuescreated" id="flexCheckDefault"
-                                            checked={event_issue_created} 
-                                            onclick=self.link.callback(|_| Msg::IssueCreated)
-                                            />
-                                                <label class="form-check-label" for="flexCheckDefault">{"Issues Created"}</label>
-                                        </div>
-
-                                        <div class="form-check mb-3" style="margin: auto; width:400px;">
-                                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault"
-                                            checked={event_issue_updated} 
-                                            onclick=self.link.callback(|_| Msg::IssueUpdated)
-                                            />
-                                                <label class="form-check-label" for="flexCheckDefault">{"Issues Updated"}</label>
-                                        </div>
-
-                                        <div class="form-check mb-3" style="margin: auto; width:400px;">
-                                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault"
-                                            checked={event_issue_deleted} 
-                                            onclick=self.link.callback(|_| Msg::IssueDeleted)  
-                                            />
-                                                <label class="form-check-label" for="flexCheckDefault">{"Issues Deleted"}</label>
-                                        </div>
-                                        <div class="form-check mb-3" style="margin: auto; width:400px;">
-                                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault"
-                                            checked={event_comment_created} 
-                                            onclick=self.link.callback(|_| Msg::CommentCreated)   
-                                            />
-                                                <label class="form-check-label" for="flexCheckDefault">{"Comment Created"}</label>
-                                        </div>
-                                        <div class="form-check mb-3" style="margin: auto; width:400px;">
-                                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault"
-                                            checked={event_comment_updated} 
-                                            onclick=self.link.callback(|_| Msg::CommentUpdated)   
-                                            />
-                                                <label class="form-check-label" for="flexCheckDefault">{"Comment Updated"}</label>
-                                        </div>
-                                        <div class="form-check mb-3" style="margin: auto; width:400px;">
-                                            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault"
-                                            checked={event_comment_deleted} 
-                                            onclick=self.link.callback(|_| Msg::CommentDeleted) 
-                                            />
-                                                <label class="form-check-label" for="flexCheckDefault">{"Comment Deleted"}</label>
-                                        </div> 
-                                    </div>
-                            </div>
-                        </div> // bawah 2
-
-                                <div class="space"
-                                    style="
-                                        color:white;
-                                        height: 30px;
-                                    "
-                                >
-                                    <p> {"s"} </p>
-                                </div>
-
-
-                        <div class="ButtonSet"
-                            style="
-                                margin:auto;
-                                text-align:center;
-                            "
+                // Modal Delete           
+                <div class="modal fade" id="DeleteModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true"
+                >
+                    <div class="modal-dialog"
+                    >
+                        <div class="modal-content"
                         >
-                                <button type="button" class="vertical-centers"
-                                    style="
-                                    background-color: #006d90; 
-                                    color: white; 
-                                    border: 3px solid white;
-                                    height: 40px;      
-                                    "
-                                    onclick=self.link.callback(|_| Msg::UpdateConnector)
-                                    // onclick=self.link.callback(|_| Msg::UpdateValidate)
+                            <div class="modal-header" style="color:black;"
+                            >
+                                <h5 class="modal-tittle"><p> {"Delete Confirmation"} </p> </h5>
+                                <button 
+                                    type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="modal"
+                                    aria-label="close"
                                 >
-                                    {"Save Changes"}
                                 </button>
-                        </div>
-
-
-                                        <div class="space"
-                                            style="
-                                                color:white;
-                                                height: 15px;
-                                            "
-                                        >
-                                            <p> {"s"} </p>
-                                        </div>
-                        <div 
-                            style="
-                                margin:auto;
-                                text-align:center;
-                            "
-                        >
-                            
-                            <button type="button" class="delete"
-                                style="
-                                background-color: red; 
-                                color: white; 
-                                border: 3px solid white;
-                                height: 40px;
-                                "
-                                data-bs-toggle="modal"
-                                data-bs-target="#DeleteModal"
-                                //onclick=self.link.callback(|_| Msg::DeleteConnector) 
-                            >
-                                {"Delete Connector"}
-                            </button>
-
-                            <div class="modal fade" id="DeleteModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true"
-                            >
-                                <div class="modal-dialog"
-                                >
-                                    <div class="modal-content"
-                                    >
-                                        <div class="modal-header" style="color:black;"
-                                        >
-                                            <h5 class="modal-tittle"><p> {"Delete Confirmation"} </p> </h5>
-                                            <button 
-                                                type="button"
-                                                class="btn-close"
-                                                data-bs-dismiss="modal"
-                                                aria-label="close"
-                                            >
-                                            </button>
-                                        </div>
-                                        <div class="modal-body" style="color:black;" >
-                                            <p> {"Are you sure you want to delete this connector?"} </p>
-                                        </div>
-                                        <div class="modal-footer"
-                                        >
-                                            <button
-                                                type="button"
-                                                class="btn btn-secondary"
-                                                data-bs-dismiss="modal"
-                                                onclick=self.link.callback(|_| Msg::Ignore) 
-                                            >
-                                                {"Cancel"}
-                                            </button> 
-                                            
-                                            <button
-                                                type="button"
-                                                class="btn btn-primary"
-                                                data-bs-dismiss="modal"
-                                                onclick=self.link.callback(|_| Msg::DeleteConnector) 
-                                            >
-                                                {"Delete"}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
-                            
+                            <div class="modal-body" style="color:black;" >
+                                <p> {"Are you sure you want to delete this connector?"} </p>
+                            </div>
+                            <div class="modal-footer"
+                            >
+                                <button
+                                    type="button"
+                                    class="btn btn-secondary"
+                                    data-bs-dismiss="modal"
+                                    onclick=self.link.callback(|_| Msg::Ignore) 
+                                >
+                                    {"Cancel"}
+                                </button> 
+                                
+                                <button
+                                    type="button"
+                                    class="btn btn-primary"
+                                    data-bs-dismiss="modal"
+                                    onclick=self.link.callback(|_| Msg::DeleteConnector) 
+                                >
+                                    {"Delete"}
+                                </button>
+                            </div>
                         </div>
-                </div>
+                    </div>
+                </div>// End Modal Delete
+
+                //Modal Error Msg
+                {self.msg_1()}
+
             </div>
-          }
+        }
     }
 }
 
-// impl ConnectorSetting{
-//     fn msg_1(&self)->Html{
-//         html!{
-//             <div style="background: #A73034; font-family: Alexandria; color: #A73034;" >
-//                 <div class="modal fade" id="display_msg" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true"
-//                 >
-//                     <div class="modal-dialog"
-//                     >
-//                         <div class="modal-content"
-//                         >
-//                             <div class="modal-header"
-//                             >
-//                                 <h5 class="modal-tittle"> <p> {format!("{}!",self.msg_err.header)} </p> </h5>
-//                                 <button 
-//                                     type="button"
-//                                     class="btn-close"
-//                                     data-bs-dismiss="modal"
-//                                     aria-label="close"
-//                                 >
-//                                 </button>
-//                             </div>
-//                             <div class="modal-body" style="color:black;" >
-//                                 <p> {format!("{} !",self.msg_err.body)} </p>
-//                             </div>
-//                             <div class="modal-footer"
-//                             >
-//                                 <button
-//                                     type="button"
-//                                     style="
-//                                         background:#A73034;
-//                                         border-color:#A73034;
-//                                         color:white;
-//                                         border-radius:15px;
-//                                         width: 70px;
-//                                         height: 40px; 
-//                                     "
+impl ConnectorSetting{
+    fn msg_1(&self)->Html{
+        html!{
+            <div style="background: #A73034; font-family: Alexandria; color: #A73034;" >
+                <div class="modal fade" id="display_msg" data-bs-backdrop="static" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true"
+                >
+                    <div class="modal-dialog"
+                    >
+                        <div class="modal-content"
+                        >
+                            <div class="modal-header"
+                            >
+                                <h5 class="modal-tittle"> <p> {format!("{}!",self.msg_err.header)} </p> </h5>
+                                <button 
+                                    type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="modal"
+                                    aria-label="close"
+                                    onclick=self.link.callback(|_| Msg::CheckSuccess)
+                                >
+                                </button>
+                            </div>
+                            <div class="modal-body" style="color:black;" >
+                                <p> {format!("{} !",self.msg_err.body)} </p>
+                            </div>
+                            <div class="modal-footer"
+                            >
+                                <button
+                                    type="button"
+                                    style="
+                                        background:#A73034;
+                                        border-color:#A73034;
+                                        color:white;
+                                        border-radius:15px;
+                                        width: 70px;
+                                        height: 40px; 
+                                    "
 
-//                                     class="btn btn-primary"
-//                                     data-bs-dismiss="modal"
-//                                     onclick=self.link.callback(|_| Msg::CheckSuccess)
-//                                 >
-//                                 <p> {"Close"} </p>
-//                                 </button>
-//                             </div>
-//                         </div>
-//                     </div>
-//                 </div>
-//             </div>
-//         }
+                                    class="btn btn-primary"
+                                    data-bs-dismiss="modal"
+                                    onclick=self.link.callback(|_| Msg::CheckSuccess)
+                                >
+                                <p> {"Close"} </p>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
         
-//     }
-// }
+    }
+}
