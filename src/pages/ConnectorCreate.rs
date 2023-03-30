@@ -227,7 +227,7 @@ impl Component for ConnectorCreate {
                             }else{
                                 if self.new_connector.chatid.is_empty() && self.new_connector.bot_type != "Slack"{
                                     self.msg_err.header = "Error".to_string();
-                                    self.msg_err.body = "Group Chat ID field cannot be empty".to_string();
+                                    self.msg_err.body = "Chat ID field cannot be empty".to_string();
                                 }else{
                                     if self.new_connector.token.is_empty(){
                                         self.msg_err.header = "Error".to_string();
@@ -356,7 +356,7 @@ impl Component for ConnectorCreate {
                                 <div>
 
                                     <div class="input-group" style=" margin: auto; width: 400px">
-                                        <input type="text" id="emailInput" class="form-control p-3 my-2 " placeholder="Group Chat ID"
+                                        <input type="text" id="emailInput" class="form-control p-3 my-2 " placeholder="Chat ID"
                                         style="
                                             height:30px;
                                             margin:auto;       
