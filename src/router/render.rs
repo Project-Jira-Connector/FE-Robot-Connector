@@ -89,7 +89,7 @@ impl Component for Render {
                 _ => {
                     route_service.set_route("/", ());
                     html! {
-                        <ConnectorHome/>
+                        <LandingPage/>
                     }
 
                 }

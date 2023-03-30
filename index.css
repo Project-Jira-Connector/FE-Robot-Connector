@@ -63,12 +63,13 @@ a {
 .base-projects .projects .btn .btn-create{
     display: flex;
     position: absolute;
-    right: 50px;
+    margin-left:89%;
     background-color: #A73034;
     color: #fafafa;
     border-radius: 15px;
     padding: 5px 10px 5px;
     box-shadow: 1px 2px #888888;
+    margin-top: 10px;
 }
 
 .base-form{
