@@ -346,6 +346,7 @@ impl Component for RobotCreate {
                     <option value="7">{ "7 days" }</option>
                     <option value="14">{ "14 days" }</option>
                 </select>
+                
                 <div class="form-check mb-3" style="margin: auto; width:400px;">
                 <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" onclick=self.link.callback(|_| Msg::CheckDoubleEmail) checked={self.checkDoubleEmail}/>
                 {
