@@ -104,7 +104,11 @@ impl Component for ConnectorHome {
     fn view(&self) -> Html {
         type Anchor = RouterAnchor<AppRoute>;
         html! {
-            <div>
+            <div
+                style="
+                    border:none;
+                "
+            >
                 <div
                     style="
                         background: #E3E8ED; 
@@ -114,6 +118,7 @@ impl Component for ConnectorHome {
                         left: 0;
                         overflow: auto;
                         height: 100%;
+                        border:none;
                     "
                 >    
                     <div style="padding-bottom:30px;"> //button
@@ -123,6 +128,7 @@ impl Component for ConnectorHome {
                             </Anchor>
                         </button>
                     </div>
+
                     {self.view_index_data()}
                 </div>
             </div>
@@ -140,42 +146,41 @@ impl ConnectorHome {
                         <div class="card mt-4 mb-2"
                             style="
                                 text-decoration:none;
-                                border-style:solid;
-                                border-width: 3px;
-                                border-color:#A73034;
-                                border-radius:10px;
                                 background: white;
                                 width:1200px;
                                 margin:auto;
+                                border:none;
                             "
                         >
                             <Anchor route=AppRoute::ConnectorSetting { _name:card.name.to_string()}>
-                            <div class="card-body"
-                                style="
-                                    color:#394A59;
-                                "
-                            >
-                                <h4 class="card-title"
-                                    style="
-                                        color:#A73034;
-                                    "
-                                >
-                                    {"Connector Name : "}{&card.name}
-                                </h4>
+                                <div class="card-body" style="color: gray;">
+                                    <h4 class="card-title" 
+                                        style="color: black;"
+                                    >
+                                        {&card.name} 
+                                    </h4>
 
-                                <p class="card-text mb-1"
-                                >
-                                    {"Status : "}{
-                                        if card.active == true {"ON"} else {"OFF"}
+                                    <h6 class="card-title"
+                                    >
+                                        {&card.bot_type}
+                                    </h6>
+                                    {
+                                        if card.active ==  true{
+                                            html!{
+                                                <span class="badge bg-success">
+                                                    {"Active"}
+                                                </span>
+                                            }
+                                        } else{
+                                            html!{
+                                                <span class="badge bg-danger">
+                                                    {"Deactive"}
+                                                </span>
+                                            }
+                                        }
                                     }
 
-                                </p>
-                                
-                                <p class="card-text mt-0"
-                                >
-                                    {"Connector to : "}{&card.bot_type}
-                                </p>
-                            </div>
+                                </div>
                             </Anchor>
                         </div>
                     

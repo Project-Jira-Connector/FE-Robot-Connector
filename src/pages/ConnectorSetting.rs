@@ -464,7 +464,7 @@ impl Component for ConnectorSetting {
                         }else{
                             if self.user_setting.chatid.is_empty() && self.user_setting.bot_type != "Slack"{
                                 self.msg_err.header = "Error".to_string();
-                                self.msg_err.body = "Group Chat ID field cannot be empty".to_string();
+                                self.msg_err.body = "Chat ID field cannot be empty".to_string();
                             }else {
                                 if self.user_setting.token.is_empty(){
                                     self.msg_err.header = "Error".to_string();
@@ -472,7 +472,7 @@ impl Component for ConnectorSetting {
                                 }else {
                                     if self.user_setting.event.is_empty(){
                                         self.msg_err.header = "Error".to_string();
-                                        self.msg_err.body = "Notification Filter field cannot be empty".to_string();
+                                        self.msg_err.body = "Event field cannot be empty".to_string();
                                     }else {
                                         self.msg_err.body = "".to_string();
                                         self.link.send_message(Msg::UpdateConnector);
@@ -731,7 +731,7 @@ impl Component for ConnectorSetting {
                                         </div>
 
                                         <div  class="input-group" style=" margin: auto; width: 400px">
-                                            <input type="text" id="Group_ID" class="form-control p-3 my-2 " placeholder="Group Chat ID"
+                                            <input type="text" id="Group_ID" class="form-control p-3 my-2 " placeholder="Chat ID"
                                                 style="
                                                     width: 400px;
                                                     height:30px;
@@ -764,7 +764,7 @@ impl Component for ConnectorSetting {
                         <div>
                             <div>
                                 <div style="text-align:center;">
-                                    <h5 style="padding-top:15px">{"Notification Filter"}</h5>
+                                    <h5 style="padding-top:15px">{"Event Filter"}</h5>
                                 </div>
 
                                 <div class="check-box"
@@ -826,70 +826,41 @@ impl Component for ConnectorSetting {
                         //Flex Button
                         <div style="display:flex; justify-content: space-around; padding-top:15px;"
                         >  
-                            // Button Delete
-                            <button type="button" class="delete"
-                                style="
-                                    background-color: red; 
-                                    color: white; 
-                                    height: 40px;
-                                    border:none;   
-                                "
-                                data-bs-toggle="modal"
-                                data-bs-target="#DeleteModal"
-                            >
-                                {"Delete Connector"}
-                            </button>
-                                    
-                                    
-                            {//ON OFF BUTTON
+                        {//ON OFF BUTTON
                                 if event_button == true{
                                     html!{
-                                        <button 
-                                            type="button"
-                                                style="
-                                                    background: green;
-                                                    color:white;
-                                                    height: 40px; 
-                                                    border:none;   
-                                                "
-                                                
-                                            onclick=self.link.callback(|_| Msg::Active_btn)
-                                        >
+                                        <button type="button" class="btn btn-primary"
+                                                onclick=self.link.callback(|_| Msg::Active_btn)
+                                                >
                                             {"Active"}
                                             </button>
                                         }
                                 }else{
                                     html!{
-                                        <button 
-                                            type="button"
-                                            style="
-                                                background:#A73034;
-                                                color:white;
-                                                height: 40px; 
-                                                border:none;   
-                                            "
-                                        
+                                        <button type="button" class="btn btn-secondary"
                                             onclick=self.link.callback(|_| Msg::Active_btn)
                                             >
                                             {"Deactive"}
                                             </button>
                                         }
-                                }
-                            }// END ON OFF BUTTON
-                                    
+                                    }
+                                }// END ON OFF BUTTON
+                                
+                                // Button Delete
+                                <button type="button" class="btn btn-danger"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#DeleteModal"
+                                >
+                                    {"Delete"}
+                                </button>
+
                             // Button Save changes
-                            <button type="button"
-                                style="
-                                    background-color: #006d90; 
-                                    color: white; 
-                                    height: 40px;   
-                                    border:none;   
-                                "
+                            <button type="button" class="btn btn-success"
                                 data-bs-toggle="modal"
                                 data-bs-target="#display_msg"
                                 onclick=self.link.callback(|_| Msg::UpdateValidate)
                             >
-                                {"Save Changes"}
+                                {"Save"}
                             </button>
                         </div>
 
