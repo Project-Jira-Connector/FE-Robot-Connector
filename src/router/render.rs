@@ -12,6 +12,7 @@ use crate::pages::{
     RobotInput::RobotInput,
     RobotProject::RobotProject,
     RobotHome::RobotHome,
+    LandingPage::LandingPage,
 };
 use crate::router::route::AppRoute;
 
@@ -44,6 +45,11 @@ impl Component for Render {
             let mut route_service = RouteService::new();
             match switch {
                 // Connector
+                AppRoute::LandingPage => {
+                    html! {
+                        <LandingPage/>
+                    }
+                }
                 AppRoute::ConnectorHome => {
                     html! {
                         <ConnectorHome/>

@@ -470,7 +470,8 @@ impl Component for RobotCreate {
                     style="
                     background-color: #A73034;
                     color: white;
-                    border-radius: 7px;"
+                    border-radius: 7px;
+                    height: 40px;"
                     type="button"
                     class="btn"
                     data-bs-toggle="modal"

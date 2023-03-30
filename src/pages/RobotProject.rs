@@ -194,12 +194,13 @@ impl RobotProject{
         self.project.iter().map(|card|{
             type Anchor = RouterAnchor<AppRoute>;
                     html!{
-                        <Anchor route=AppRoute::RobotInput {idProject : card.id.oid.clone()}>
+                        
                         <div class="card mt-4 mb-2"
                         style="
                         width: 1200px;
                         margin: auto;
                         ">
+                        <Anchor route=AppRoute::RobotInput {idProject : card.id.oid.clone()}>
                             <div class="card-body" style="color: gray;">
                                 <h4 class="card-title" style="color: black;">
                                     {&card.name}
@@ -225,8 +226,8 @@ impl RobotProject{
                                 <div>
                                 </div>
                             </div>   
-                        </div>
                         </Anchor>
+                        </div>
                     }
         }).collect()
     }

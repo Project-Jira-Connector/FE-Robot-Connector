@@ -61,8 +61,9 @@ impl Component for NavtopConnector {
                 </label>
             <div class="sidebar" id="sidebarMenu">
                 <ul class="sidebarMenuInner">
+                <Anchor route=AppRoute::LandingPage>
                     <li>{"Digital Business"} <span>{"Web Development"}</span></li>
-
+                </Anchor>
                     //Robot
                     <Anchor route=AppRoute::RobotProject>
                     <li class="sidebarDrop"><a>{"Robot Automation"}</a>

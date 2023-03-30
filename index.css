@@ -57,7 +57,6 @@ a {
 
 .base-projects .projects .btn{
     margin: 20px 0px 50px;
-    display: flex;
 }
 
 .base-projects .projects .btn .btn-create{
@@ -66,8 +65,9 @@ a {
     right: 50px;
     background-color: #A73034;
     color: #fafafa;
-    border-radius: 7px;
-    border: none;
+    border-radius: 15px;
+    padding: 5px 10px 5px;
+    box-shadow: 1px 2px #888888;
 }
 
 .base-form{

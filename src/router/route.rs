@@ -4,6 +4,8 @@ use yew_router::prelude::*;
 
 #[derive(Switch, Clone)]
 pub enum AppRoute {
+    #[to="/LandingPage"]
+    LandingPage,
     #[to="/ConnectorCreate"]
     ConnectorCreate,
     #[to="/ConnectorSetting/{_name}"]
