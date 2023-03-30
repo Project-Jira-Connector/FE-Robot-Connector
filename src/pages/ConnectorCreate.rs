@@ -184,7 +184,7 @@ impl Component for ConnectorCreate {
             Msg::Direct=> {
                 ConsoleService::info(("Direct Jalan"));
 
-                self.router_agent.send(ChangeRoute(AppRoute::Home.into()));
+                self.router_agent.send(ChangeRoute(AppRoute::ConnectorHome.into()));
                 true
             }
             Msg::Ignore => {
