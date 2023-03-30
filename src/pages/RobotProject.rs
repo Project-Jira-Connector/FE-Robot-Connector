@@ -166,6 +166,13 @@ impl Component for RobotProject {
         html! {
             <div class="base-projects">
                 <div class="projects">
+                    <div class="btn">
+                        <Anchor route=AppRoute::RobotCreate>
+                            <button type="button" class="btn-create">
+                                {"Create Bot"}
+                            </button>
+                        </Anchor>
+                    </div>
                 //     <div>
                 //     <button
                 //         class="badge rounded-pill bg-primary"
@@ -187,6 +194,7 @@ impl RobotProject{
         self.project.iter().map(|card|{
             type Anchor = RouterAnchor<AppRoute>;
                     html!{
+                        <Anchor route=AppRoute::RobotInput {idProject : card.id.oid.clone()}>
                         <div class="card mt-4 mb-2"
                         style="
                         width: 1200px;
@@ -203,27 +211,22 @@ impl RobotProject{
                                     if card.active.to_string().contains("true"){
                                         html!{
                                             <span class="badge bg-success">
-                                                {&card.active}
+                                                {"Active"}
                                             </span>
                                         }
                                     } else{
                                         html!{
                                             <span class="badge bg-danger">
-                                                {&card.active}
+                                                {"Deactive"}
                                             </span>
                                         }
                                     }
                                 }
                                 <div>
-                                <Anchor route=AppRoute::RobotInput {idProject : card.id.oid.clone()}>
-                                    <button type="button" class="btn btn-primary btn-sm pl-3">{"Setting"}
-                                    </button>
-                                 </Anchor>
-                                    
                                 </div>
-                            </div>
-                            
+                            </div>   
                         </div>
+                        </Anchor>
                     }
         }).collect()
     }

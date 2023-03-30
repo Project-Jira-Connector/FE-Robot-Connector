@@ -14,7 +14,8 @@ use yew_router::agent::RouteRequest::ChangeRoute;
 
 use crate::router::route::AppRoute;
 use crate::types::var::{
-    Users
+    Users,
+    MsgErr
 };
 
 pub enum Msg {
@@ -33,7 +34,10 @@ pub enum Msg {
     CheckActiveStatus,
     CheckDoubleName,
     CheckDoubleEmail,
-    GetData(String),
+    GetData,
+    CreateValidate,
+    CheckSuccess,
+    CheckInput,
     Ignore,
     GetName(Users),
 }
@@ -65,6 +69,7 @@ pub struct RobotCreate {
     link: ComponentLink<Self>,
     fetch_task: Option<FetchTask>,
     router_agent: Box<dyn Bridge<RouteAgent>>,
+    msg_err:MsgErr,
 }
 
 impl Component for RobotCreate {
@@ -95,6 +100,10 @@ impl Component for RobotCreate {
             // SERVICES
             link: link.clone(),
             fetch_task: None,
+            msg_err:MsgErr { 
+                header:"".to_string(),
+                body:"".to_string(),
+            },
             router_agent: RouteAgent::bridge(link.callback(|_| Msg::Ignore)),
         }
     }
@@ -139,7 +148,7 @@ impl Component for RobotCreate {
                     match data{
                         Ok(dataok)=>{
                             ConsoleService::info(&format!("Data response {:?}", &dataok));
-                            Msg::GetData(format!("{:?}", dataok))
+                            Msg::CheckInput
                         }
                         Err(error)=>{
                             ConsoleService::info("Ignore");
@@ -233,12 +242,67 @@ impl Component for RobotCreate {
                 ConsoleService::info(&format!("Email Threshold {:?}", self.doubleEmailThreshold));
                 true 
             }
+            Msg::CheckInput => {
+                if self.msg_err.body.is_empty(){
+                    self.msg_err.header = "Success".to_string();
+                    self.msg_err.body = "You have created a new connector".to_string();
+                }else{
+                    self.link.send_message(Msg::Ignore);
+                }
+                true
+            }
+            Msg::GetData => {
+                self.router_agent.send(ChangeRoute(AppRoute::RobotProject.into())); 
+                true
+            }
+            Msg::CreateValidate => {
+                if self.name.is_empty(){
+                   self.msg_err.header = "Error".to_string();
+                   self.msg_err.body = "Name field cannot be empty".to_string();
+                }else{
+                    if self.description.is_empty(){
+                        self.msg_err.header = "Error".to_string();
+                        self.msg_err.body = "Description field cannot be empty".to_string();
+                    }else{
+                        if self.platformApiKey.is_empty(){
+                            self.msg_err.header = "Error".to_string();
+                            self.msg_err.body = "Api key field cannot be empty".to_string();
+                        }else{
+                            if self.platformEmail.is_empty(){
+                                self.msg_err.header = "Error".to_string();
+                                self.msg_err.body = "Email field cannot be empty".to_string();
+                            }else{
+                                if self.cloudSessionToken.is_empty(){
+                                    self.msg_err.header = "Error".to_string();
+                                    self.msg_err.body = "Token field cannot be empty".to_string();
+                                }else{
+                                    if self.schedule == 0 {
+                                        self.msg_err.header = "Error".to_string();
+                                        self.msg_err.body = "Select Scheduler cannot be Empty".to_string();
+                                    }else{
+                                        if self.lastActive == 0 {
+                                            self.msg_err.header = "Error".to_string();
+                                            self.msg_err.body = "Last Active field cannot be Empty".to_string();
+                                        }else{
+                                            self.msg_err.body = "".to_string();
+                                            ConsoleService::info(&format!("msg err body {}", self.msg_err.body));
+                                            self.link.send_message(Msg::RequestPostData);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                true
+            }
+            Msg::CheckSuccess => {           
+                if self.msg_err.header == "Success"{
+                    self.link.send_message(Msg::GetData)
+                }else{
+                    self.link.send_message(Msg::Ignore)
+                }                 
 
-            Msg::GetData(data) => {
-                ConsoleService::info(&format!("get data {:?}", data));
-
-                self.router_agent.send(ChangeRoute(AppRoute::RobotProject.into()));
-                
                 true
             }
             Msg::Ignore => {
@@ -303,7 +367,184 @@ impl Component for RobotCreate {
                         />
                 </div>
                 
-                // <select class="form-select mb-3" style=" margin: auto; width: 400px;" aria-label="Default select example"
+                <h5>{"Filter Setting"}</h5>
+                <select class="form-select mb-4" style=" margin: auto; width: 400px;" aria-label="Default select example"
+                    onchange=self.link.callback(|e| {
+                        if let ChangeData::Select(select) = e {
+                            let value = select.value();
+                            Msg::InputScheduler(value)
+                        } else {
+                            Msg::InputScheduler("No value".to_string())
+                        }
+                    })
+                >
+                    <option>{ "Scheduler"}</option>
+                    <option value="3">{ "3 days" }</option>
+                    <option value="7">{ "7 days" }</option>
+                    <option value="14">{ "14 days" }</option>
+                </select>
+                <div class="form-check mb-3" style="margin: auto; width:400px;">
+                <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" onclick=self.link.callback(|_| Msg::CheckDoubleEmail) checked={self.checkDoubleEmail}/>
+                <label class="form-check-label" for="flexCheckDefault">{"Double Email"}</label>
+                {
+                    if checked_email==true{
+                        html!{
+                            <div style="
+                            height: 50px;
+                            border-style: ridge">
+                                <label for="customRange3" class="form-label">{self.doubleEmailThreshold}
+                                    <input type="range" class="form-range" min="0" max="100" step="1" id="customRange3"
+                                    value={self.doubleEmailThreshold.to_string()}
+                                    onchange=self.link.callback(|data: ChangeData|{
+                                        if let ChangeData::Value(value)=data{
+                                            Msg::doubleEmailThreshold(value.parse::<f32>().unwrap())
+                                        }else{
+                                            Msg::Ignore
+                                        }
+                                    })
+                                    />
+                                </label>
+                            </div>
+                        }
+                    }else{
+                        html!{
+
+                        }
+
+                    }
+                }
+                </div>
+                <div class="form-check mb-3" style="margin: auto; width:400px;">
+                <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" onclick=self.link.callback(|_| Msg::CheckDoubleName) checked={self.checkDoubleName}/>
+                <label class="form-check-label" for="flexCheckDefault">{"Double Name"}</label>
+                {
+                    if checked_name==true{
+                        html!{
+                            <div style="
+                            height: 50px;
+                            border-style: ridge">
+                                <label for="customRange3" class="form-label">{self.doubleNameThreshold}
+                                    <input type="range" class="form-range" min="0" max="100" step="1" id="customRange3"
+                                    value={self.doubleNameThreshold.to_string()}
+                                    onchange=self.link.callback(|data: ChangeData|{
+                                        if let ChangeData::Value(value)=data{
+                                            Msg::doubleNameThreshold(value.parse::<f32>().unwrap())
+                                        }else{
+                                            Msg::Ignore
+                                        }
+                                    })
+                                    />
+                                </label>
+                            </div>
+                        }
+                    }else{
+                        html!{
+
+                        }
+
+                    }
+                }
+                </div>
+                <div class="form-check mb-3" style="margin: auto; width:400px;">
+                <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" onclick=self.link.callback(|_| Msg::CheckActiveStatus) checked={self.checkActiveStatus}/> 
+                    <label class="form-check-label" for="flexCheckDefault">{"Active Status"}</label>
+                </div>
+
+                <select class="form-select mb-4" style=" margin: auto; width: 400px;" aria-label="Default select example"
+                    onchange=self.link.callback(|e| {
+                        if let ChangeData::Select(select) = e {
+                            let value = select.value();
+                            Msg::InputActive(value)
+                        } else {
+                            Msg::InputActive("No value".to_string())
+                        }
+                    })
+                >
+                    <option>{ "Last Active"}</option>
+                    <option value="3">{ "3 days" }</option>
+                    <option value="7">{ "7 days" }</option>
+                    <option value="14">{ "14 days" }</option>
+                </select>
+
+                <button
+                    style="
+                    background-color: #A73034;
+                    color: white;
+                    border-radius: 7px;"
+                    type="button"
+                    class="btn"
+                    data-bs-toggle="modal"
+                    data-bs-target="#display_msg"
+                    onclick=self.link.callback(|_| {
+                        Msg::CreateValidate
+                    })
+                >       
+                    { "Create" }
+                </button>
+                </div>
+                
+            {self.msg_1()}
+            </div>
+        }
+    }
+}
+
+impl RobotCreate{
+    fn msg_1(&self)->Html{
+        html!{
+            <div style="background: #A73034; font-family: Alexandria; color: #A73034;" >
+                <div class="modal fade" id="display_msg" data-bs-backdrop="static" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true"
+                >
+                    <div class="modal-dialog"
+                    >
+                        <div class="modal-content"
+                        >
+                            <div class="modal-header"
+                            >
+                                <h5 class="modal-tittle"> <p> {format!("{}!",self.msg_err.header)} </p> </h5>
+                                <button 
+                                    type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="modal"
+                                    aria-label="close"
+                                    onclick=self.link.callback(|_|Msg::CheckSuccess)
+                                >
+                                </button>
+                            </div>
+                            <div class="modal-body" style="color:black;" >
+                                <p> {format!("{} !",self.msg_err.body)} </p>
+                            </div>
+                            <div class="modal-footer"
+                            >
+                                <button
+                                    type="button"
+                                    style="
+                                        background:#A73034;
+                                        border-color:#A73034;
+                                        color:white;
+                                        border-radius:15px;
+                                        width: 70px;
+                                        height: 40px; 
+                                    "
+
+                                    class="btn btn-primary"
+                                    data-bs-dismiss="modal"
+                                    onclick=self.link.callback(|_| Msg::CheckSuccess)
+                                >
+                                <p> {"Close"} </p>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        
+    }
+}
+
+//DRAFT
+// <select class="form-select mb-3" style=" margin: auto; width: 400px;" aria-label="Default select example"
                 //     onchange=self.link.callback(|e| {
                 //         if let ChangeData::Select(select) = e {
                 //             let value = select.value();
@@ -330,108 +571,3 @@ impl Component for RobotCreate {
                 //         oninput=self.link.callback(|data: InputData| Msg::InputText(data.value))
                 //         />
                 // </div>
-                <h5>{"Filter Setting"}</h5>
-                <select class="form-select mb-4" style=" margin: auto; width: 400px;" aria-label="Default select example"
-                    onchange=self.link.callback(|e| {
-                        if let ChangeData::Select(select) = e {
-                            let value = select.value();
-                            Msg::InputScheduler(value)
-                        } else {
-                            Msg::InputScheduler("No value".to_string())
-                        }
-                    })
-                >
-                    <option>{ "Scheduler"}</option>
-                    <option value="3">{ "3 days" }</option>
-                    <option value="7">{ "7 days" }</option>
-                    <option value="14">{ "14 days" }</option>
-                </select>
-                <div class="form-check mb-3" style="margin: auto; width:400px;">
-                <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" onclick=self.link.callback(|_| Msg::CheckDoubleEmail) checked={self.checkDoubleEmail}/>
-                {
-                    if checked_email==true{
-                        html!{
-                            <label for="customRange3" class="form-label">{"Accuracy 0-100"}
-                                <input type="range" class="form-range" min="0" max="100" step="1" id="customRange3"
-                                value={self.doubleEmailThreshold.to_string()}
-                                onchange=self.link.callback(|data: ChangeData|{
-                                    if let ChangeData::Value(value)=data{
-                                        Msg::doubleEmailThreshold(value.parse::<f32>().unwrap())
-                                    }else{
-                                        Msg::Ignore
-                                    }
-                                })
-                                />
-                            </label>
-                        }
-                    }else{
-                        html!{
-
-                        }
-
-                    }
-                }
-                        <label class="form-check-label" for="flexCheckDefault">{"Double Email"}</label>
-                </div>
-                <div class="form-check mb-3" style="margin: auto; width:400px;">
-                <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" onclick=self.link.callback(|_| Msg::CheckDoubleName) checked={self.checkDoubleName}/>
-                {
-                    if checked_name==true{
-                        html!{
-                            <label for="customRange3" class="form-label">{"Accuracy 0-100"}
-                                <input type="range" class="form-range" min="0" max="100" step="1" id="customRange3"
-                                value={self.doubleNameThreshold.to_string()}
-                                onchange=self.link.callback(|data: ChangeData|{
-                                    if let ChangeData::Value(value)=data{
-                                        Msg::doubleNameThreshold(value.parse::<f32>().unwrap())
-                                    }else{
-                                        Msg::Ignore
-                                    }
-                                })
-                                />
-                            </label>
-                        }
-                    }else{
-                        html!{
-
-                        }
-
-                    }
-                }
-                    <label class="form-check-label" for="flexCheckDefault">{"Double Name"}</label>
-                </div>
-                <div class="form-check mb-3" style="margin: auto; width:400px;">
-                <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" onclick=self.link.callback(|_| Msg::CheckActiveStatus) checked={self.checkActiveStatus}/> 
-                    <label class="form-check-label" for="flexCheckDefault">{"Active Status"}</label>
-                </div>
-
-                <select class="form-select mb-4" style=" margin: auto; width: 400px;" aria-label="Default select example"
-                    onchange=self.link.callback(|e| {
-                        if let ChangeData::Select(select) = e {
-                            let value = select.value();
-                            Msg::InputActive(value)
-                        } else {
-                            Msg::InputActive("No value".to_string())
-                        }
-                    })
-                >
-                    <option>{ "Last Active"}</option>
-                    <option value="3">{ "3 days" }</option>
-                    <option value="7">{ "7 days" }</option>
-                    <option value="14">{ "14 days" }</option>
-                </select>
-
-                <button
-                    type="button"
-                    class="btn btn-primary"
-                    onclick=self.link.callback(|_| {
-                        Msg::RequestPostData
-                    })
-                >       
-                    { "Create" }
-                </button>
-                </div>
-            </div>
-        }
-    }
-}

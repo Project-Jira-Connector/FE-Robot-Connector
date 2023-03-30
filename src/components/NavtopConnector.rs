@@ -64,22 +64,24 @@ impl Component for NavtopConnector {
                     <li>{"Digital Business"} <span>{"Web Development"}</span></li>
 
                     //Robot
+                    <Anchor route=AppRoute::RobotProject>
                     <li class="sidebarDrop"><a>{"Robot Automation"}</a>
-                        <ul class="serviceProjects">
-                            <li>
-                                <Anchor route=AppRoute::RobotHome>
-                                            {"Create"}
-                                </Anchor>
-                            </li>
-                        </ul>
-                        <ul class="serviceProjects">
-                            <li>
-                                <Anchor route=AppRoute::RobotProject>
-                                            {"Project"}
-                                </Anchor>
-                            </li>
-                        </ul>
+                        // <ul class="serviceProjects">
+                        //     <li>
+                        //         <Anchor route=AppRoute::RobotHome>
+                        //                     {"Create"}
+                        //         </Anchor>
+                        //     </li>
+                        // </ul>
+                        // <ul class="serviceProjects">
+                        //     <li>
+                                
+                        //                     {"Project"}
+                                
+                        //     </li>
+                        // </ul>
                     </li>
+                    </Anchor>
 
                     //Connector
                     <li class="sidebarDrop"><a>{"Atlassian Connector"}</a>

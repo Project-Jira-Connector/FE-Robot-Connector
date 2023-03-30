@@ -416,28 +416,7 @@ impl Component for RobotInput {
                         value={self.data.platformApiKey.clone()}
                         />
                 </div>
-                // <select class="form-select mb-4" style=" margin: auto; width: 400px;" aria-label="Default select example"
-                //     onchange=self.link.callback(|e| {
-                //         if let ChangeData::Select(select) = e {
-                //             let value = select.value();
-                //             Msg::InputSelect(value)
-                //         } else {
-                //             Msg::InputSelect("No value".to_string())
-                //         }
-                //     })
-                // >
-                //     <option>{self.data.platformType.clone()}</option>
-                //     <option value="SERVER">{ "Server" }</option>
-                //     <option value="CLOUD">{ "Cloud" }</option>
-                // </select>
-                 // onchange=self.link.callback(|_| {
-                //     // Msg::SelectProject
-                // })
-                    // <div>
-                    //     <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                    //         {"Project Selection"}
-                    //     </button>
-                    // </div>
+                
                 <h5>{"Filter Setting"}</h5>
                 <select class="form-select mb-4" style=" margin: auto; width: 400px;" aria-label="Default select example"
                     onchange=self.link.callback(|e| {
@@ -457,21 +436,26 @@ impl Component for RobotInput {
                 <div class="form-check mb-3" style="margin: auto; width:400px;">
                 <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" 
                 onclick=self.link.callback(|_| Msg::CheckDoubleEmail) checked={self.data.checkDoubleEmail}/>
+                <label class="form-check-label" for="flexCheckDefault">{"Double Email"}</label>
                 {
                     if checked_email==true{
                         html!{
-                            <label for="customRange3" class="form-label">{"Accuracy 0-100"}
-                                <input type="range" class="form-range" min="0" max="100" step="1" id="customRange3"
-                                value={self.data.doubleEmailThreshold.to_string()}
-                                onchange=self.link.callback(|data: ChangeData|{
-                                    if let ChangeData::Value(value)=data{
-                                        Msg::doubleEmailThreshold(value.parse::<f32>().unwrap())
-                                    }else{
-                                        Msg::Ignore
-                                    }
-                                })
-                                />
-                            </label>
+                            <div style="
+                            height: 50px;
+                            border-style: ridge">
+                                <label for="customRange3" class="form-label">{self.data.doubleEmailThreshold}
+                                    <input type="range" class="form-range" min="0" max="100" step="1" id="customRange3"
+                                    value={self.data.doubleEmailThreshold.to_string()}
+                                    onchange=self.link.callback(|data: ChangeData|{
+                                        if let ChangeData::Value(value)=data{
+                                            Msg::doubleEmailThreshold(value.parse::<f32>().unwrap())
+                                        }else{
+                                            Msg::Ignore
+                                        }
+                                    })
+                                    />
+                                </label>
+                            </div>
                         }
                     }else{
                         html!{
@@ -480,26 +464,30 @@ impl Component for RobotInput {
 
                     }
                 }
-                        <label class="form-check-label" for="flexCheckDefault">{"Double Email"}</label>
                 </div>
                 <div class="form-check mb-3" style="margin: auto; width:400px;">
                 <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault"
                 onclick=self.link.callback(|_| Msg::CheckDoubleName) checked={self.data.checkDoubleName}/>
+                <label class="form-check-label" for="flexCheckDefault">{"Double Name"}</label>
                 {
                     if checked_name==true{
                         html!{
-                            <label for="customRange3" class="form-label">{"Accuracy 0-100"}
-                                <input type="range" class="form-range" min="0" max="100" step="1" id="customRange3"
-                                value={self.data.doubleNameThreshold.to_string()}
-                                onchange=self.link.callback(|data: ChangeData|{
-                                    if let ChangeData::Value(value)=data{
-                                        Msg::doubleNameThreshold(value.parse::<f32>().unwrap())
-                                    }else{
-                                        Msg::Ignore
-                                    }
-                                })
-                                />
-                            </label>
+                            <div style="
+                            height: 50px;
+                            border-style: ridge">
+                                <label for="customRange3" class="form-label">{self.data.doubleNameThreshold}
+                                    <input type="range" class="form-range" min="0" max="100" step="1" id="customRange3"
+                                    value={self.data.doubleNameThreshold.to_string()}
+                                    onchange=self.link.callback(|data: ChangeData|{
+                                        if let ChangeData::Value(value)=data{
+                                            Msg::doubleNameThreshold(value.parse::<f32>().unwrap())
+                                        }else{
+                                            Msg::Ignore
+                                        }
+                                    })
+                                    />
+                                </label>
+                            </div>
                         }
                     }else{
                         html!{
@@ -508,7 +496,6 @@ impl Component for RobotInput {
 
                     }
                 }
-                        <label class="form-check-label" for="flexCheckDefault">{"Double Name"}</label>
                 </div>
                 <div class="form-check mb-3" style="margin: auto; width:400px;">
                 <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault"
@@ -550,7 +537,7 @@ impl Component for RobotInput {
                 <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#exampleModal"
                 >{"Delete"}</button>
                 <button type="button" class="btn btn-success"
-                onclick=self.link.callback(|_|Msg::UpdateData)>{"Patch"}
+                onclick=self.link.callback(|_|Msg::UpdateData)>{"Save"}
                 </button>
                     </div>
                 </div>
@@ -563,6 +550,7 @@ impl Component for RobotInput {
                             </div>
                             <div class="modal-body">
                                 
+                                {&format!("Are you sure want to Delete bot with name {:?}?",self.data.name.clone())}
                                 
                             </div>
                             <div class="modal-footer">
@@ -594,3 +582,27 @@ impl Component for RobotInput {
         }
     }
 }
+
+//DRAFT
+// <select class="form-select mb-4" style=" margin: auto; width: 400px;" aria-label="Default select example"
+                //     onchange=self.link.callback(|e| {
+                //         if let ChangeData::Select(select) = e {
+                //             let value = select.value();
+                //             Msg::InputSelect(value)
+                //         } else {
+                //             Msg::InputSelect("No value".to_string())
+                //         }
+                //     })
+                // >
+                //     <option>{self.data.platformType.clone()}</option>
+                //     <option value="SERVER">{ "Server" }</option>
+                //     <option value="CLOUD">{ "Cloud" }</option>
+                // </select>
+                 // onchange=self.link.callback(|_| {
+                //     // Msg::SelectProject
+                // })
+                    // <div>
+                    //     <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                    //         {"Project Selection"}
+                    //     </button>
+                    // </div>
