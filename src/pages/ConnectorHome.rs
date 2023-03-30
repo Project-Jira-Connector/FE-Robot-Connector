@@ -116,7 +116,7 @@ impl Component for ConnectorHome {
                         height: 100%;
                     "
                 >    
-                    <div style="padding-bottom:30px;">   
+                    <div style="padding-bottom:30px;"> //button
                         <button type="button" style=" margin-left:87%; background:#A73034; border-color:#A73034;  color:white;  border-radius:15px; height: 40px;"> 
                             <Anchor route=AppRoute::ConnectorCreate> 
                                 {"Create new Connector"}  
