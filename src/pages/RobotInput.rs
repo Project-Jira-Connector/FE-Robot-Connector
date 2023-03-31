@@ -383,10 +383,8 @@ impl Component for RobotInput {
         html! {
         <div class="base-form">
             <div class="form">
-                <div class="img-setting">
-                    <img src="img/pngegg.png" alt="rust image" width="200" height="200"/>
-                </div>
-                <h5>{"Basic Information"}</h5>
+                
+                <h5 style="padding-bottom: 10px">{"Basic Information"}</h5>
                 <div class="input-group mb-3" style=" margin: auto; width: 400px;">
                     <span class="input-group-text"></span>
                         <input type="text" class="form-control" placeholder="Disabled input" 
@@ -414,6 +412,13 @@ impl Component for RobotInput {
                         <input type="text" class="form-control" placeholder="API Key"
                         oninput=self.link.callback(|data: InputData| Msg::InputApi(data.value))
                         value={self.data.platformApiKey.clone()}
+                        />
+                </div>
+                <div class="input-group mb-3" style=" margin: auto; width: 400px">
+                    <span class="input-group-text"></span>
+                        <input type="text" class="form-control" placeholder="API Key"
+                        oninput=self.link.callback(|data: InputData| Msg::InputToken(data.value))
+                        value={self.data.cloudSessionToken.clone()}
                         />
                 </div>
                 
