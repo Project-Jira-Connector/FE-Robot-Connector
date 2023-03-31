@@ -324,7 +324,7 @@ impl Component for ConnectorSetting {
             Msg::Direct=> {
                 ConsoleService::info(("Direct Jalan"));
 
-                self.router_agent.send(ChangeRoute(AppRoute::Home.into()));
+                self.router_agent.send(ChangeRoute(AppRoute::ConnectorHome.into()));
                 true
             }
             Msg::TriggerProject(index)=>{
