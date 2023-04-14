@@ -208,21 +208,49 @@ impl RobotProject{
                                 <h6 class="card-title">
                                     {&card.description}
                                 </h6>
+                                <div class="d-flex align-items-stretch">
                                 {
                                     if card.active.to_string().contains("true"){
                                         html!{
                                             <span class="badge bg-success">
                                                 {"Active"}
+                                                
                                             </span>
                                         }
                                     } else{
                                         html!{
                                             <span class="badge bg-danger">
+                                            
                                                 {"Deactive"}
+                                                
                                             </span>
                                         }
                                     }
+                                    
                                 }
+                                    {
+                                        if card.created.is_some(){
+                                            html!{
+                                                <span class="badge bg-secondary" style="margin: 0 10px 0;">{format!("Created : {}",&card.created.unwrap().format("%a, %d %b %Y %H:%M:%S").to_string())}</span>
+                                            }
+                                        }else{
+                                            html!{
+
+                                            }
+                                        }
+                                    }
+                                    {
+                                        if card.modified.is_some(){
+                                            html!{
+                                                <span class="badge bg-secondary">{format!("Last Updated : {}",&card.modified.unwrap().format("%a, %d %b %Y %H:%M:%S").to_string())}</span>
+                                            }   
+                                        }else{
+                                            html!{
+
+                                            }
+                                        }
+                                    }
+                                </div>        
                                 <div>
                                 </div>
                             </div>   

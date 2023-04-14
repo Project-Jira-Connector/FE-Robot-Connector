@@ -28,7 +28,7 @@ pub enum Msg {
     InputApi(String),
     InputToken(String),
     InputSelect(String),
-    InputActive(String),
+    LastActive(String),
     doubleEmailThreshold(f32),
     doubleNameThreshold(f32),
     CheckActiveStatus,
@@ -39,6 +39,9 @@ pub enum Msg {
     CheckSuccess,
     CheckInput,
     Ignore,
+    CustomLastActive(String),
+    CustomScheduler(String),
+    InvalidCredential,
     GetName(Users),
 }
 
@@ -64,6 +67,9 @@ pub struct RobotCreate {
     
     username: String,
     status: String,
+    customLastActive: Option<i64>,
+    customScheduler: Option<i64>,
+
 
     // SERVICES
     link: ComponentLink<Self>,
@@ -93,6 +99,8 @@ impl Component for RobotCreate {
             checkDoubleEmail: false,
             doubleNameThreshold: 100.0,
             doubleEmailThreshold: 100.0,
+            customLastActive: Some(0),
+            customScheduler: Some(0),
 
             username: String::from(""),
             status: String::from(""),
@@ -117,7 +125,7 @@ impl Component for RobotCreate {
 
             Msg::RequestPostData => {
 
-                let user = Users {
+                let mut user = Users {
                     name: self.name.clone(),
                     description: self.description.clone(),
                     platformEmail: self.platformEmail.clone(),
@@ -133,7 +141,14 @@ impl Component for RobotCreate {
                     doubleEmailThreshold: self.doubleEmailThreshold.clone(),
                     doubleNameThreshold: self.doubleNameThreshold.clone()
                 };
+                if self.customLastActive.is_some(){
+                    user.lastActive = self.customLastActive.unwrap();
+                }
+                if self.customScheduler.is_some(){
+                    user.schedule = self.customScheduler.unwrap();
+                }
 
+                ConsoleService::info(&format!("data user : {:?}",user));
                 //FETCHING
                 let request = Request::post("https://atlassian-robot-api.dev-domain.site/robots")
                 .header("Content-Type", "application/json")
@@ -145,18 +160,24 @@ impl Component for RobotCreate {
                     let (meta, Json(data)) = response.into_parts();
                     let status_number = meta.status.as_u16();
                     ConsoleService::info(&format!("Status is{:?}", status_number));
+                    
                     match data{
+                        
                         Ok(dataok)=>{
                             ConsoleService::info(&format!("Data response {:?}", &dataok));
                             Msg::CheckInput
                         }
                         Err(error)=>{
+                            if status_number == 401{
+                                Msg::InvalidCredential
+                            }else{
                             ConsoleService::info("Ignore");
                             ConsoleService::info(&format!("Data error {:?}", error));
-
                             Msg::Ignore
+                            }
                         }
                     }
+
                 });
 
                 let task = FetchService::fetch(request, callback).expect("failed to start request");
@@ -196,9 +217,21 @@ impl Component for RobotCreate {
                 true
             }
             Msg::InputScheduler(data) => {
-                ConsoleService::info(&format!("data input is {:?}", data));
-                // let test = data.to_owned();
-                self.schedule = data.parse::<i64>().unwrap();
+                if let Ok (result) = data.parse::<i64>() {
+
+                    self.schedule = result;
+                }
+                ConsoleService::info(&format!("data input select is {:?}", data));
+                true
+            }
+            Msg::CustomScheduler(data) => {
+                if let Ok (result) = data.parse::<i64>() {
+
+                    self.customScheduler = Some(result);
+                }else{
+                    self.customScheduler = Some(0);
+                }
+                ConsoleService::info(&format!("custom {:?}", data));
                 true
             }
             Msg::InputSelect(data) => {
@@ -206,9 +239,22 @@ impl Component for RobotCreate {
                 self.platformType = data;
                 true
             }
-            Msg::InputActive(data) => {
+            Msg::LastActive(data) => {
+                if let Ok (result) = data.parse::<i64>() {
+
+                    self.lastActive = result;
+                }
                 ConsoleService::info(&format!("data input select is {:?}", data));
-                self.lastActive = data.parse::<i64>().unwrap();
+                true
+            }
+            Msg::CustomLastActive(data) => {
+                if let Ok (result) = data.parse::<i64>() {
+
+                    self.customLastActive = Some(result);
+                }else{
+                    self.customLastActive = Some(0);
+                }
+                ConsoleService::info(&format!("custom {:?}", data));
                 true
             }
             Msg::CheckDoubleEmail => {
@@ -229,7 +275,7 @@ impl Component for RobotCreate {
                 // ConsoleService::info("Unchecked");
                 // let data = self.checkActiveStatus;
                 self.checkActiveStatus = !self.checkActiveStatus;
-                ConsoleService::info(&format!("check double name is {:?}", self.checkActiveStatus));
+                ConsoleService::info(&format!("check active is {:?}", self.checkActiveStatus));
                 true
             }
             Msg::doubleNameThreshold(data)=> {
@@ -251,11 +297,17 @@ impl Component for RobotCreate {
                 }
                 true
             }
+            Msg::InvalidCredential =>{
+                self.msg_err.header = "Error".to_string();
+                self.msg_err.body = "Invalid Credential".to_string();
+                true
+            }
             Msg::GetData => {
                 self.router_agent.send(ChangeRoute(AppRoute::RobotProject.into())); 
                 true
             }
             Msg::CreateValidate => {
+                ConsoleService::info(&format!("{:#?}", self.schedule));
                 if self.name.is_empty(){
                    self.msg_err.header = "Error".to_string();
                    self.msg_err.body = "Name field cannot be empty".to_string();
@@ -276,11 +328,11 @@ impl Component for RobotCreate {
                                     self.msg_err.header = "Error".to_string();
                                     self.msg_err.body = "Token field cannot be empty".to_string();
                                 }else{
-                                    if self.schedule == 0 {
+                                    if self.schedule == 0 && self.customScheduler.is_none() {
                                         self.msg_err.header = "Error".to_string();
                                         self.msg_err.body = "Select Scheduler cannot be Empty".to_string();
                                     }else{
-                                        if self.lastActive == 0 {
+                                        if self.lastActive == 0 && self.customLastActive.is_none() {
                                             self.msg_err.header = "Error".to_string();
                                             self.msg_err.body = "Last Active field cannot be Empty".to_string();
                                         }else{
@@ -378,11 +430,27 @@ impl Component for RobotCreate {
                         }
                     })
                 >
-                    <option>{ "Scheduler"}</option>
+                    <option value="1">{"Scheduler"}</option>
                     <option value="3">{ "3 days" }</option>
                     <option value="7">{ "7 days" }</option>
                     <option value="14">{ "14 days" }</option>
+                    <option value="0">{ "Select Option" }</option>
                 </select>
+                {
+                    if self.schedule == 0{
+                        html!{   
+                            <div class="input-group" style="margin: auto; width: 400px">
+                                <input type="text" id="DateInput" class="form-control p-3 my-2" placeholder="Input Days"
+                                value={self.customScheduler.unwrap().to_string()}
+                                oninput=self.link.callback(|data: InputData| Msg::CustomScheduler(data.value))/>
+                            </div>
+                        }
+                    }else{
+                        html!{
+
+                        }
+                    }
+                }
                 <div class="form-check mb-3" style="margin: auto; width:400px;">
                 <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" onclick=self.link.callback(|_| Msg::CheckDoubleEmail) checked={self.checkDoubleEmail}/>
                 <label class="form-check-label" for="flexCheckDefault">{"Double Email"}</label>
@@ -454,18 +522,33 @@ impl Component for RobotCreate {
                     onchange=self.link.callback(|e| {
                         if let ChangeData::Select(select) = e {
                             let value = select.value();
-                            Msg::InputActive(value)
+                            Msg::LastActive(value)
                         } else {
-                            Msg::InputActive("No value".to_string())
+                            Msg::LastActive("No value".to_string())
                         }
                     })
                 >
-                    <option>{ "Last Active"}</option>
+                    <option>{"Last Active"}</option>
                     <option value="3">{ "3 days" }</option>
                     <option value="7">{ "7 days" }</option>
                     <option value="14">{ "14 days" }</option>
-                </select>
+                    <option value="0">{"Select Option"}</option>
+                    </select>
+                    {
+                        if self.lastActive == 0{
+                            html!{   
+                                <div class="input-group" style="margin: auto; width: 400px">
+                                    <input type="text" id="DateInput" class="form-control p-3 my-2" placeholder="Input Days"
+                                    value={self.customLastActive.unwrap().to_string()}
+                                    oninput=self.link.callback(|data: InputData| Msg::CustomLastActive(data.value))/>
+                                </div>
+                            }
+                        }else{
+                            html!{
 
+                            }
+                        }
+                    }
                 <button
                     style="
                     background-color: #A73034;

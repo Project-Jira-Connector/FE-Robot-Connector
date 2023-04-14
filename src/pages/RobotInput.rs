@@ -19,7 +19,7 @@ use crate::types::var::{
     UsersData,
     ProjectId,
     PostReturnValue,
-    Users
+    MsgErr
 };
 
 
@@ -50,6 +50,9 @@ pub enum Msg {
     RunProgram,
     doubleEmailThreshold(f32),
     doubleNameThreshold(f32),
+    CheckSuccess,
+    InvalidCredential,
+    Success,
 }
 
 #[derive(Properties, Clone)]
@@ -72,6 +75,7 @@ pub struct RobotInput {
     fetch_task: Option<FetchTask>,
     router_agent: Box<dyn Bridge<RouteAgent>>,
     idProject: String,
+    msg_err:MsgErr,
 }
 
 impl Component for RobotInput {
@@ -107,6 +111,12 @@ impl Component for RobotInput {
                 checkActiveStatus: false,
                 doubleEmailThreshold: 100.0,
                 doubleNameThreshold: 100.0,
+                modified: None,
+                created: None
+            },
+            msg_err:MsgErr { 
+                header:"".to_string(),
+                body:"".to_string(),
             },
         }
         
@@ -202,6 +212,8 @@ impl Component for RobotInput {
                     checkDoubleEmail: self.data.checkDoubleEmail.clone(),
                     doubleEmailThreshold: self.data.doubleEmailThreshold.clone(),
                     doubleNameThreshold: self.data.doubleNameThreshold.clone(),
+                    modified: self.data.modified.clone(),
+                    created: self.data.created.clone()
                 };
 
                 ConsoleService::info(&format!("CheckUpdate {:?}", update));
@@ -214,25 +226,34 @@ impl Component for RobotInput {
                 .expect("Request Error");
 
                 let callback = 
-                self.link.callback(|response: Response<Json<Result<PostReturnValue, anyhow::Error>>>| {
+                self.link.callback(|response: Response<Json<Result<String, anyhow::Error>>>| {
                     let (meta, Json(data)) = response.into_parts();
                     let status_number = meta.status.as_u16();
                     ConsoleService::info(&format!("Status is{:?}", status_number));
                     if meta.status.is_success(){
-                        Msg::SendData
+                        Msg::Success
+                    }else if status_number == 401{
+                        Msg::InvalidCredential
+                    }else{
+                        Msg::Ignore
                     }
-                    else{
-                        match data{
-                            Ok(dataok)=>{
-                                ConsoleService::info(&format!("Data response {:?}", &dataok));
-                                Msg::SendData
-                            }
-                            Err(error)=>{
-                                ConsoleService::info("Ignore");
-                                Msg::Ignore
-                            }
-                        }
-                    }
+                    // else{
+                    //     ConsoleService::info(&format!("{:?}", data));
+                    //     match data{
+                    //         Ok(dataok)=>{
+                    //             ConsoleService::info(&format!("Data response {:?}", &dataok));
+                    //             Msg::SendData
+                    //         }
+                    //         Err(Error)=>{
+                    //             if status_number == 401{
+                    //                 Msg::InvalidCredential
+                    //             }else{
+                    //             ConsoleService::info("Ignore");
+                    //             Msg::Ignore
+                    //             }
+                    //         }
+                    //     }
+                    // }
                     
                 });
 
@@ -276,6 +297,7 @@ impl Component for RobotInput {
             //     self.data.platformType = data;
             //     true
             // }
+            
             Msg::InputActive(data) => {
                 ConsoleService::info(&format!("data input select is {:?}", data));
                 self.data.lastActive = data.parse::<i64>().unwrap();
@@ -358,6 +380,23 @@ impl Component for RobotInput {
                 self.data.doubleNameThreshold = data;
                 ConsoleService::info(&format!("Name Threshold {:?}", self.data.doubleNameThreshold));
                 true 
+            }
+            Msg::CheckSuccess => {
+                ConsoleService::info("check success event");
+                    self.link.send_message(Msg::UpdateData);
+                true
+            }
+            Msg::InvalidCredential =>{
+                self.msg_err.header = "Error".to_string();
+                self.msg_err.body = "Invalid Credential".to_string();
+                // self.invalidCredential = true;
+                true
+            }
+            Msg::Success => {
+                self.msg_err.header = "Success".to_string();
+                self.msg_err.body = "Data Updated".to_string();
+                // self.link.send_message(Msg::SendData);
+                true
             }
         }
     }
@@ -541,11 +580,15 @@ impl Component for RobotInput {
                 }     
                 <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#exampleModal"
                 >{"Delete"}</button>
-                <button type="button" class="btn btn-success"
-                onclick=self.link.callback(|_|Msg::UpdateData)>{"Save"}
+                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#savedModal"
+                >{"Save"}
+                
                 </button>
-                    </div>
                 </div>
+                </div>
+                
+
+
                 <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
@@ -567,7 +610,7 @@ impl Component for RobotInput {
                     </div>
                 </div>
 
-                <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal fade" id="savedModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
                             <div class="modal-header">
@@ -578,13 +621,77 @@ impl Component for RobotInput {
                             </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{"Close"}</button>
-                                    <button type="button" class="btn btn-primary">{"Save changes"}</button>
+                                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#Invalid"
+                                    onclick=self.link.callback(|_|Msg::CheckSuccess)>{"Save changes"}
+                                    </button>  
                                 </div>
+                        </div>
+                    </div>
+                </div>
+                {self.msg_2()}
+            </div>
+        }
+    }
+}
+
+impl RobotInput{
+    fn msg_2(&self)->Html{
+        ConsoleService::info("test modal");
+        html!{
+            <div style="background: #A73034; font-family: Alexandria; color: #A73034;" >
+                <div class="modal fade" id="Invalid" data-bs-backdrop="static" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="false"
+                >
+                    <div class="modal-dialog"
+                    >
+                        <div class="modal-content"
+                        >
+                            <div class="modal-header"
+                            >
+                                <h5 class="modal-tittle"> <p> {format!("{}!",self.msg_err.header)} </p> </h5>
+                                <button 
+                                    type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="modal"
+                                    aria-label="close"
+                                    onclick=self.link.callback(|_|Msg::Ignore)
+                                >
+                                </button>
+                            </div>
+                            <div class="modal-body" style="color:black;" >
+                                <p> {format!("{} !",self.msg_err.body)} </p>
+                            </div>
+                            <div class="modal-footer"
+                            >
+                                <button
+                                    type="button"
+                                    style="
+                                        background:#A73034;
+                                        border-color:#A73034;
+                                        color:white;
+                                        border-radius:15px;
+                                        width: 70px;
+                                        height: 40px; 
+                                    "
+
+                                    class="btn btn-primary"
+                                    data-bs-dismiss="modal"
+                                    onclick={
+                                        if self.msg_err.header.eq("Error"){
+                                            self.link.callback(|_| Msg::Ignore)
+                                        }else{
+                                            self.link.callback(|_| Msg::SendData)
+                                        }
+                                    }
+                                >
+                                <p> {"Close"} </p>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         }
+        
     }
 }
 

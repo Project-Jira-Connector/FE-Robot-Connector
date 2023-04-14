@@ -80,7 +80,8 @@ a {
     position: absolute;
     right: 0;
     left: 0;
-    margin-bottom: 50px;
+    margin-bottom: 100px;
+    overflow: auto;
 }
 
 .base-form2{
@@ -142,7 +143,6 @@ a {
 .base-form .create{
     background-color: white;
     padding: 30px;
-    margin-top: 23px;
     position: absolute;
     left: 50%;
     transform: translate(-50%);
@@ -188,4 +188,5 @@ a {
 .base-form .img-setting{
     padding-bottom: 30px;
 }
+
 

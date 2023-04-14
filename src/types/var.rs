@@ -1,6 +1,7 @@
 use std::string;
 
 use bson::oid::ObjectId;
+use chrono::{DateTime, Utc, Date};
 use serde::{
     Deserialize,
     Serialize,
@@ -125,6 +126,8 @@ pub struct UsersData {
     pub checkActiveStatus: bool,
     pub doubleNameThreshold: f32,
     pub doubleEmailThreshold: f32,
+    pub created: Option<DateTime<Utc>>,
+    pub modified: Option<DateTime<Utc>>
 }
 
 #[derive(Deserialize, Debug, Clone)]
