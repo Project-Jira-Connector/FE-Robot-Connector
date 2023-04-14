@@ -627,7 +627,7 @@ impl Component for RobotInput {
                                 </div>
                         </div>
                     </div>
-                </div>
+                </div> 
                 {self.msg_2()}
             </div>
         }

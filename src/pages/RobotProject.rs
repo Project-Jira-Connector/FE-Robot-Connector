@@ -227,7 +227,7 @@ impl RobotProject{
                                         }
                                     }
                                     
-                                }
+                                } 
                                     {
                                         if card.created.is_some(){
                                             html!{

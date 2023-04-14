@@ -340,7 +340,7 @@ impl Component for RobotCreate {
                                             ConsoleService::info(&format!("msg err body {}", self.msg_err.body));
                                             self.link.send_message(Msg::RequestPostData);
                                         }
-                                    }
+                                    } 
                                 }
                             }
                         }
